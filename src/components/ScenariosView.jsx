@@ -2,41 +2,42 @@ import React from 'react';
 import { Play } from 'lucide-react';
 
 export default function ScenariosView({ onRunScenario, isRunningScenario }) {
-  const scenarios = [
+  const executions = [
     {
-      id: 'independent',
-      title: 'Scenario 1: Complete Independence',
-      subtitle: 'The assistant remains 100% silent throughout the activity.',
-      points: [
-        'John proceeds through all 6 tea-making steps without deviation.',
-        'The system observes John progressing normally and deliberately says nothing.',
-        'Success metric: How much the person can continue doing without AI interference.'
+      id: 'execution_1',
+      title: 'First Execution: Subtle Prompt',
+      subtitle: 'System waits, detects uncertainty, offers minimal verbal question.',
+      story: [
+        'Sarah packs wallet, keys, and phone, then stops.',
+        'System deliberately waits 15+ seconds to avoid premature interruption.',
+        'After sufficient uncertainty, Anchor asks: "Anything else you normally take with you?"',
+        'Sarah remembers her notebook. MongoDB records: subtle cue successful.'
       ],
-      badge: 'Zero AI Prompts'
+      badge: 'Subtle Cue: "Anything else?"'
     },
     {
-      id: 'confusion_mug',
-      title: 'Scenario 2: Loop Confusion & Level 1 Nudge',
-      subtitle: 'Repeated cupboard opening triggers minimal prompt.',
-      points: [
-        'John boils water, but opens and closes the cupboard repeatedly looking for his mug.',
-        'MongoDB Atlas Vector Search matches similar historical confusion (94% similarity).',
-        'AI provides the smallest useful prompt: "Your mug is nearby."',
-        'John takes the mug, and the AI immediately returns to silent observation.'
+      id: 'execution_2',
+      title: 'Second Execution: Shorter Nudge',
+      subtitle: 'Atlas Vector Search retrieves past success; system shortens prompt.',
+      story: [
+        'Sarah pauses at the exact same point after packing phone.',
+        'Atlas Vector Search retrieves Episode #17 where a subtle cue worked.',
+        'Anchor adapts by giving an even more minimal nudge: "Anything else?"',
+        'Sarah adds the notebook. Assistance continues to diminish.'
       ],
       badge: 'Atlas Vector Search ($vectorSearch)'
     },
     {
-      id: 'escalation',
-      title: 'Scenario 3: Progressive Escalation',
-      subtitle: 'Persistent hesitation smoothly escalates from subtle nudge to clear cue.',
-      points: [
-        'John stands still after water boils, exceeding the adaptive hesitation threshold.',
-        'AI delivers Level 1 nudge. John remains stuck.',
-        'AI escalates to Level 2: "Your mug is in the cupboard beside the kettle."',
-        'John follows the cue, and the assistant immediately recedes.'
+      id: 'execution_3',
+      title: 'Third Execution: Anchor Does Nothing',
+      subtitle: 'The demo moment: Sarah pauses, remembers alone, Anchor stays silent.',
+      story: [
+        'Sarah packs wallet, keys, and phone, and pauses briefly.',
+        'Anchor observes and patiently waits.',
+        'Sarah remembers her notebook herself and packs it.',
+        'Anchor says NOTHING. The AI deliberate silence is the achievement.'
       ],
-      badge: 'Adaptive Escalation'
+      badge: 'AI Silence (Zero Prompts)'
     }
   ];
 
@@ -46,16 +47,16 @@ export default function ScenariosView({ onRunScenario, isRunningScenario }) {
       {/* Intro Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-[#1d1d1f]">
-          Demo Scenarios
+          Demo Executions
         </h2>
         <p className="text-base text-[#6e6e73] mt-1.5 leading-relaxed">
-          One-click walkthroughs demonstrating how the assistant intervenes only when necessary.
+          The 3-stage progression from Section 19 demonstrating how Anchor learns to intervene less over time.
         </p>
       </div>
 
-      {/* Stacked Scenario Cards */}
+      {/* Stacked Execution Cards */}
       <div className="space-y-5">
-        {scenarios.map(sc => (
+        {executions.map(sc => (
           <div
             key={sc.id}
             className="rounded-3xl border border-[#e5e5ea] bg-white p-7 sm:p-8 space-y-5 shadow-sm transition-all"
@@ -76,7 +77,7 @@ export default function ScenariosView({ onRunScenario, isRunningScenario }) {
             </div>
 
             <ul className="text-sm text-[#515154] space-y-2.5 pt-4 border-t border-[#e5e5ea] leading-relaxed">
-              {sc.points.map((p, idx) => (
+              {sc.story.map((p, idx) => (
                 <li key={idx} className="flex items-start gap-2.5">
                   <span className="text-[#86868b] mt-0.5">•</span>
                   <span>{p}</span>
@@ -91,7 +92,7 @@ export default function ScenariosView({ onRunScenario, isRunningScenario }) {
                 className="py-3 px-5 rounded-xl text-sm font-semibold bg-[#1d1d1f] text-white hover:bg-[#333336] transition-all flex items-center gap-2 disabled:opacity-40 shadow-sm"
               >
                 <Play className="w-4 h-4 fill-white" />
-                <span>{isRunningScenario ? 'Running Simulation...' : 'Run Demonstration'}</span>
+                <span>{isRunningScenario ? 'Running Execution...' : 'Run This Execution'}</span>
               </button>
             </div>
           </div>

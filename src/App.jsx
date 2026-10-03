@@ -9,12 +9,12 @@ import { speechService } from './utils/speech.js';
 export default function App() {
   const [activeTab, setActiveTab] = useState('live');
   const [state, setState] = useState({
-    user: 'John',
-    task: 'make_tea',
+    user: 'sarah',
+    task: 'pack_bag',
     state: 'OBSERVING_SILENT',
     currentStepIndex: 0,
     currentStep: null,
-    totalSteps: 6,
+    totalSteps: 7,
     idleSeconds: 0,
     activePrompt: null,
     actionHistory: [],
@@ -176,7 +176,7 @@ export default function App() {
         onReset={handleReset}
       />
 
-      {/* Main Content Area (Light Theme & Apple Proportions) */}
+      {/* Main Content Area (Apple Proportions: Generous Padding, Less Columns) */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#fbfbfd]">
         <main className="flex-1 px-6 sm:px-12 py-10 sm:py-14 max-w-4xl w-full mx-auto">
           
@@ -214,7 +214,7 @@ export default function App() {
 
         {/* Minimal Light Footer */}
         <footer className="border-t border-[#e5e5ea] py-6 px-6 sm:px-12 text-xs text-[#86868b] max-w-4xl w-full mx-auto flex items-center justify-between">
-          <span>Adaptive Memory Guardian</span>
+          <span>Anchor — Privacy-First Adaptive Assistance</span>
           <span>Powered by MongoDB Atlas Vector Search</span>
         </footer>
       </div>

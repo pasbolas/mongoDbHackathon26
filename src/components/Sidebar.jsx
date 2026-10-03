@@ -7,7 +7,7 @@ import {
   Volume2, 
   VolumeX, 
   RotateCcw,
-  Shield
+  Anchor as AnchorIcon
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -19,10 +19,10 @@ export default function Sidebar({
   onReset 
 }) {
   const navItems = [
-    { id: 'live', label: 'Live Routine', icon: Activity, caption: 'Active assistant & actions' },
-    { id: 'scenarios', label: 'Demo Scenarios', icon: PlayCircle, caption: '1-click judge walkthroughs' },
-    { id: 'progress', label: 'Independence', icon: BarChart2, caption: 'Weekly vanishing cues' },
-    { id: 'database', label: 'MongoDB Atlas', icon: Database, caption: 'Vector search & records' },
+    { id: 'live', label: 'Live Activity', icon: Activity, caption: 'Sarah packing bag' },
+    { id: 'scenarios', label: 'Demo Executions', icon: PlayCircle, caption: '3-stage demo walkthrough' },
+    { id: 'progress', label: 'Observable Metrics', icon: BarChart2, caption: 'Sessions 1, 2, 3 data' },
+    { id: 'database', label: 'MongoDB Atlas', icon: Database, caption: 'Episodes & Vector Search' },
   ];
 
   return (
@@ -31,18 +31,18 @@ export default function Sidebar({
       {/* Top Branding & Navigation */}
       <div className="space-y-8">
         
-        {/* Apple-style minimalist header */}
+        {/* Anchor minimalist header */}
         <div className="pt-2 px-2">
           <div className="flex items-center space-x-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#1d1d1f] text-white flex items-center justify-center font-bold">
-              <Shield className="w-4 h-4 fill-white" />
+              <AnchorIcon className="w-4 h-4 text-white" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-[#1d1d1f] tracking-tight">
-                Memory Guardian
+                Anchor
               </h1>
               <span className="text-[11px] text-[#6e6e73] block font-normal">
-                Vanishing Assistance
+                Privacy-First Adaptive Assistance
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function Sidebar({
         {/* Navigation list */}
         <nav className="space-y-1.5">
           <div className="text-[11px] font-medium text-[#86868b] uppercase tracking-wider px-3 mb-2">
-            Overview
+            Navigation
           </div>
 
           {navItems.map(item => {
@@ -100,7 +100,7 @@ export default function Sidebar({
           </span>
         </button>
 
-        {/* Reset Routine */}
+        {/* Reset Session */}
         <button
           onClick={onReset}
           className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#eaeaea] border border-[#e5e5ea] text-xs text-[#1d1d1f] transition-all shadow-sm"

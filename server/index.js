@@ -36,11 +36,11 @@ app.use((req, res, next) => {
       res.send(`
         <!DOCTYPE html>
         <html>
-          <head><title>Adaptive Memory Guardian API</title></head>
-          <body style="font-family: sans-serif; padding: 2rem; background: #0b0f19; color: #f3f4f6;">
-            <h2>🛡️ Adaptive Memory Guardian Backend Active</h2>
-            <p>Vite dev server is expected at <a style="color: #34d399;" href="http://localhost:5173">http://localhost:5173</a> during development.</p>
-            <p>API status: <a style="color: #60a5fa;" href="/api/state">/api/state</a> | <a style="color: #60a5fa;" href="/api/db/status">/api/db/status</a></p>
+          <head><title>Anchor API</title></head>
+          <body style="font-family: monospace; padding: 2rem; background: #fbfbfd; color: #1d1d1f;">
+            <h2>⚓ Anchor Backend Active</h2>
+            <p>Vite dev server is expected at <a href="http://localhost:5173">http://localhost:5173</a> during development.</p>
+            <p>API status: <a href="/api/state">/api/state</a> | <a href="/api/db/status">/api/db/status</a></p>
           </body>
         </html>
       `);
@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 });
 
 async function start() {
-  console.log('🚀 Initializing Adaptive Memory Guardian server...');
+  console.log('🚀 Initializing Anchor (Privacy-First Adaptive Assistance) server...');
 
   // Connect to DB (Atlas or local fallback)
   await dbManager.connect(process.env.MONGODB_URI);
@@ -58,7 +58,7 @@ async function start() {
   await seedDatabase(false);
 
   app.listen(PORT, () => {
-    console.log(`✅ Server listening on http://localhost:${PORT}`);
+    console.log(`✅ Anchor server listening on http://localhost:${PORT}`);
   });
 }
 

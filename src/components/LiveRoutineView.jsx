@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, CheckCircle2, Clock, Droplet, Flame, Coffee, Package, Milk } from 'lucide-react';
+import { Volume2, CheckCircle2, Clock, Briefcase, CreditCard, Key, Smartphone, BookOpen, Droplet, ShieldCheck } from 'lucide-react';
 import { speechService } from '../utils/speech.js';
 
 export default function LiveRoutineView({ 
@@ -11,17 +11,19 @@ export default function LiveRoutineView({
 }) {
   const currentStep = state.currentStep;
   const currentStepIndex = state.currentStepIndex;
-  const isFinished = state.state === 'ROUTINE_COMPLETED';
+  const isFinished = state.state === 'TASK_COMPLETED';
   const isIntervening = state.state === 'INTERVENING' && state.activePrompt;
+  const isWaiting = state.state === 'WAITING';
   const sim = state.simulation || {};
 
   const steps = [
-    { key: 'fill_kettle', num: 1, title: 'Fill Kettle' },
-    { key: 'boil_water', num: 2, title: 'Boil Water' },
-    { key: 'get_mug', num: 3, title: 'Get Mug' },
-    { key: 'get_teabag', num: 4, title: 'Get Tea Bag' },
-    { key: 'pour_water', num: 5, title: 'Pour Water' },
-    { key: 'add_milk', num: 6, title: 'Add Milk' }
+    { key: 'open_bag', num: 1, title: 'Open Bag', icon: Briefcase },
+    { key: 'pack_wallet', num: 2, title: 'Wallet', icon: CreditCard },
+    { key: 'pack_keys', num: 3, title: 'Keys', icon: Key },
+    { key: 'pack_phone', num: 4, title: 'Phone', icon: Smartphone },
+    { key: 'pack_notebook', num: 5, title: 'Notebook', icon: BookOpen },
+    { key: 'pack_water', num: 6, title: 'Water', icon: Droplet },
+    { key: 'close_bag', num: 7, title: 'Close Bag', icon: Briefcase }
   ];
 
   return (
@@ -33,20 +35,20 @@ export default function LiveRoutineView({
           <div className="space-y-3">
             <div className="flex items-center space-x-2 text-emerald-700 text-xs font-bold uppercase tracking-wider">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Routine Complete</span>
+              <span>Activity Complete</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">
-              Tea routine finished.
+              Sarah's bag is packed.
             </h2>
             <p className="text-base text-[#6e6e73] leading-relaxed">
-              John completed the full activity. Independent completion outcome recorded to MongoDB Atlas to lower future cue levels.
+              All essential items packed. Longitudinal episode outcome stored in MongoDB Atlas to calibrate future assistance.
             </p>
           </div>
         ) : isIntervening ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#fef3c7] text-[#92400e] border border-[#fcd34d]">
-                Prompt Level {state.activePrompt.level} of 3
+                Task Uncertainty: {state.activePrompt.type === 'subtle_verbal' ? 'Subtle Cue' : 'Clearer Cue'}
               </span>
               {soundEnabled && (
                 <button
@@ -64,38 +66,50 @@ export default function LiveRoutineView({
             </div>
 
             <p className="text-sm text-[#6e6e73]">
-              Vector Search matched: {state.activePrompt.vectorMatch?.title || 'Hesitation looking for mug'}.
+              Atlas Vector Search matched: {state.activePrompt.vectorMatch?.title || 'Episode #17 (Inactivity after phone/wallet/keys)'}.
+            </p>
+          </div>
+        ) : isWaiting ? (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2 text-amber-700 text-xs font-bold uppercase tracking-wider">
+              <Clock className="w-4 h-4" />
+              <span>Observing & Waiting</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">
+              Inactivity detected. Anchor waits.
+            </h2>
+            <p className="text-base text-[#6e6e73] leading-relaxed">
+              Anchor does not rush to prompt. It waits to give Sarah space to self-initiate before considering an intervention.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center space-x-2 text-emerald-700 text-xs font-bold uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-              <span>Silence is the Feature</span>
+              <span>Silence is the Goal</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">
-              John is on track. AI is quiet.
+              Sarah is packing normally. Anchor is quiet.
             </h2>
             <p className="text-base text-[#6e6e73] leading-relaxed">
-              When an individual completes routine steps naturally, the assistant intentionally refrains from intervening to preserve spontaneous memory.
+              Anchor learns when NOT to intervene. Providing the minimum useful assistance while preserving as much independent action as possible.
             </p>
           </div>
         )}
       </div>
 
-      {/* 2. Step Stepper (Clean Linear Flow) */}
+      {/* 2. Step Progress Flow */}
       <div className="rounded-2xl border border-[#e5e5ea] bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-semibold uppercase tracking-wider text-[#86868b]">
-            Step Progress
+            Packing Sequence
           </span>
           <span className="text-xs font-medium text-[#1d1d1f]">
-            {isFinished ? '6 of 6 Completed' : `Step ${Math.min(6, currentStepIndex + 1)} of 6: ${currentStep?.title || ''}`}
+            {isFinished ? '7 of 7 Done' : `Step ${Math.min(7, currentStepIndex + 1)} of 7: ${currentStep?.title || ''}`}
           </span>
         </div>
 
-        {/* Clean pill stepper */}
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
           {steps.map((s, idx) => {
             const isCompleted = idx < currentStepIndex;
             const isCurrent = idx === currentStepIndex && !isFinished;
@@ -110,181 +124,160 @@ export default function LiveRoutineView({
             return (
               <div
                 key={s.key}
-                className={`py-2 px-3 rounded-xl border text-center transition-all ${pillClass}`}
+                className={`py-2 px-2 rounded-xl border text-center transition-all ${pillClass}`}
               >
                 <div className="text-[10px] font-medium opacity-70">0{s.num}</div>
-                <div className="text-xs truncate font-medium">{s.title}</div>
+                <div className="text-[11px] truncate font-medium mt-0.5">{s.title}</div>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* 3. Action Workstations */}
+      {/* 3. Physical Perception Actions */}
       <div className="space-y-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-[#86868b] px-1">
-          Simulated Physical Perceptor
+          Simulated Edge Perception (Local Processing)
         </div>
 
-        {/* Section A: Primary Actions */}
         <div className="rounded-2xl border border-[#e5e5ea] bg-white p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#1d1d1f]">
-              Primary Routine Actions
+              Object Interactions
             </h3>
             <span className="text-xs text-[#86868b]">
-              Simulates camera perception
+              Frames discarded immediately
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
-              onClick={() => onAction('kettle_fill')}
+              onClick={() => onAction('bag_open')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-neutral-600" />
+                <span>Open Bag</span>
+              </span>
+              <span className="text-xs text-[#86868b]">
+                {sim.bag?.open ? 'Open' : 'Closed'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('wallet_added')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-emerald-600" />
+                <span>Pack Wallet</span>
+              </span>
+              <span className="text-xs text-[#86868b]">
+                {sim.items?.wallet?.packed ? 'In Bag' : 'Desk'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('keys_added')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                <Key className="w-4 h-4 text-amber-600" />
+                <span>Pack Keys</span>
+              </span>
+              <span className="text-xs text-[#86868b]">
+                {sim.items?.keys?.packed ? 'In Bag' : 'Desk'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('phone_added')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                <span>Pack Phone</span>
+              </span>
+              <span className="text-xs text-[#86868b]">
+                {sim.items?.phone?.packed ? 'In Bag' : 'Desk'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('notebook_added')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-indigo-600" />
+                <span>Pack Notebook</span>
+              </span>
+              <span className="text-xs text-[#86868b]">
+                {sim.items?.notebook?.packed ? 'In Bag' : 'Desk'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('water_added')}
               disabled={isPerformingAction || isFinished}
               className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
             >
               <span className="flex items-center gap-2">
                 <Droplet className="w-4 h-4 text-cyan-600" />
-                <span>Fill Kettle</span>
+                <span>Pack Water Bottle</span>
               </span>
               <span className="text-xs text-[#86868b]">
-                {sim.kettle?.filled ? 'Filled' : 'Empty'}
+                {sim.items?.water_bottle?.packed ? 'In Bag' : 'Counter'}
               </span>
             </button>
+          </div>
 
+          <div className="pt-2">
             <button
-              onClick={() => onAction('kettle_boil')}
+              onClick={() => onAction('bag_close')}
               disabled={isPerformingAction || isFinished}
-              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-[#f5f5f7] hover:bg-[#eaeaea] text-[#1d1d1f] border border-[#d1d1d6] transition-all disabled:opacity-40"
             >
-              <span className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-600" />
-                <span>Turn On Kettle</span>
-              </span>
-              <span className="text-xs text-[#86868b]">
-                {sim.kettle?.boiled ? 'Boiled' : 'Off'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => onAction('take_mug')}
-              disabled={isPerformingAction || isFinished}
-              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
-            >
-              <span className="flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-blue-600" />
-                <span>Retrieve Blue Mug</span>
-              </span>
-              <span className="text-xs text-[#86868b]">
-                {sim.mug?.onCounter ? 'On Counter' : 'In Cupboard'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => onAction('take_teabag')}
-              disabled={isPerformingAction || isFinished}
-              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
-            >
-              <span className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-amber-600" />
-                <span>Take Tea Bag</span>
-              </span>
-              <span className="text-xs text-[#86868b]">
-                {sim.mug?.hasTeabag ? 'Inside Mug' : 'Pantry'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => onAction('pour_water')}
-              disabled={isPerformingAction || isFinished}
-              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
-            >
-              <span className="flex items-center gap-2">
-                <Droplet className="w-4 h-4 text-cyan-600" />
-                <span>Pour Hot Water</span>
-              </span>
-              <span className="text-xs text-[#86868b]">
-                {sim.mug?.hasWater ? 'Poured' : 'Empty'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => onAction('add_milk')}
-              disabled={isPerformingAction || isFinished}
-              className="py-3 px-4 rounded-xl text-sm font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-all flex items-center justify-between disabled:opacity-40 shadow-sm"
-            >
-              <span className="flex items-center gap-2">
-                <Milk className="w-4 h-4 text-emerald-600" />
-                <span>Add Splash of Milk</span>
-              </span>
-              <span className="text-xs text-[#86868b]">
-                {sim.mug?.hasMilk ? 'Added' : 'Fridge'}
-              </span>
+              Close Bag (Finish Packing)
             </button>
           </div>
         </div>
 
-        {/* Section B: Environment Interaction */}
-        <div className="rounded-2xl border border-[#e5e5ea] bg-white p-6 space-y-4 shadow-sm">
+        {/* Section B: Inactivity & Pause Simulation */}
+        <div className="rounded-2xl border border-[#e5e5ea] bg-white p-6 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#1d1d1f]">
-              Environmental Actions & Hesitation
-            </h3>
-            <span className="text-xs text-[#86868b]">
-              Test edge cases & loop detection
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button
-              onClick={() => onAction('cupboard_open')}
-              disabled={isPerformingAction || isFinished}
-              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-colors disabled:opacity-40 shadow-sm"
-            >
-              Open Cupboard
-            </button>
-            <button
-              onClick={() => onAction('cupboard_close')}
-              disabled={isPerformingAction || isFinished}
-              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-[#d1d1d6] transition-colors disabled:opacity-40 shadow-sm"
-            >
-              Close Cupboard
-            </button>
+            <div>
+              <h3 className="text-sm font-bold text-[#1d1d1f]">
+                Simulate Inactivity / Cognitive Pause
+              </h3>
+              <p className="text-xs text-[#6e6e73] mt-0.5">
+                Anchor first enters WAIT. Prompts only if uncertainty persists.
+              </p>
+            </div>
             <button
               onClick={() => onIdle(15)}
               disabled={isFinished}
-              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+              className="py-2.5 px-4 rounded-xl text-xs font-medium bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] transition-colors flex items-center gap-1.5 disabled:opacity-40"
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>Simulate 15s Idle</span>
+              <span>Simulate 15s Pause {state.idleSeconds > 0 ? `(+${state.idleSeconds}s)` : ''}</span>
             </button>
           </div>
         </div>
 
       </div>
 
-      {/* 4. Streamlined Perceived Events Log */}
-      {state.actionHistory && state.actionHistory.length > 0 && (
-        <div className="rounded-2xl border border-[#e5e5ea] bg-white p-6 space-y-3 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#86868b]">
-              Event Stream (MongoDB `events`)
-            </h3>
-            <span className="text-xs text-[#86868b]">Time-Series</span>
-          </div>
-
-          <div className="divide-y divide-[#e5e5ea]">
-            {state.actionHistory.slice(-4).reverse().map((act, i) => (
-              <div key={i} className="py-2 flex items-center justify-between text-xs">
-                <span className="font-mono font-medium text-[#1d1d1f]">{act.action}</span>
-                <span className="text-[#86868b]">
-                  {new Date(act.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 4. Privacy Guarantee Card */}
+      <div className="rounded-2xl border border-[#e5e5ea] bg-[#fbfbfd] p-5 flex items-start gap-3 text-xs text-[#6e6e73]">
+        <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          <strong className="text-[#1d1d1f]">Privacy Architecture:</strong> Raw webcam frames are processed strictly in local memory and discarded immediately. Only high-level semantic event records (e.g., <code className="text-[#1d1d1f] bg-[#eaeaea] px-1 py-0.5 rounded">wallet_added</code>) are transmitted to MongoDB Atlas.
+        </p>
+      </div>
 
     </div>
   );

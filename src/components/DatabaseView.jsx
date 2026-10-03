@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Database, ShieldCheck, Zap } from 'lucide-react';
 
 export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
-  const [activeCollection, setActiveCollection] = useState('situations_vector');
+  const [activeCollection, setActiveCollection] = useState('episodes');
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [customUri, setCustomUri] = useState('');
@@ -10,11 +10,11 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
   const [message, setMessage] = useState(null);
 
   const collections = [
-    { id: 'situations_vector', label: 'situations_vector', role: 'Vector Search Index' },
-    { id: 'events', label: 'events', role: 'Time-Series Stream' },
-    { id: 'routines', label: 'routines', role: 'Routine Baseline' },
-    { id: 'longitudinal_metrics', label: 'longitudinal_metrics', role: 'Weekly Progress' },
-    { id: 'prompt_history', label: 'prompt_history', role: 'Logged Cues' }
+    { id: 'episodes', label: 'episodes', role: 'Vector Search ($vectorSearch)' },
+    { id: 'task_profiles', label: 'task_profiles', role: 'Assistance Profiles' },
+    { id: 'session_metrics', label: 'session_metrics', role: 'Observable Ground Truth' },
+    { id: 'live_events', label: 'live_events', role: 'Normal Collection (Atlas Triggers)' },
+    { id: 'sensor_history', label: 'sensor_history', role: 'Time-Series (TTL Expiration)' }
   ];
 
   useEffect(() => {
@@ -66,21 +66,37 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
       {/* Intro Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-[#1d1d1f]">
-          MongoDB Atlas Storage
+          MongoDB Atlas Architecture
         </h2>
         <p className="text-base text-[#6e6e73] mt-1.5 leading-relaxed">
           Active storage engine: <span className="text-[#1d1d1f] font-semibold">{dbStatus?.mode || 'Local Hybrid Engine'}</span>.
         </p>
       </div>
 
-      {/* Connection Form Card */}
+      {/* Section 17 Architecture Note */}
+      <div className="rounded-3xl border border-[#e5e5ea] bg-white p-7 sm:p-8 space-y-3 shadow-sm text-xs text-[#515154] leading-relaxed">
+        <div className="flex items-center space-x-2 text-[#1d1d1f] font-bold text-sm">
+          <Zap className="w-4 h-4 text-amber-600" />
+          <span>Section 17 Architecture: Clean Separation for Triggers & TTL</span>
+        </div>
+        <p>
+          MongoDB Atlas Database Triggers require change streams, which are not supported on time-series collections. Anchor implements a clean dual-collection strategy:
+        </p>
+        <ul className="space-y-1.5 pl-4 list-disc text-[#6e6e73]">
+          <li><strong className="text-[#1d1d1f]">live_events</strong>: Standard Atlas collection for actionable perception events; activates Atlas Triggers for prompt delivery.</li>
+          <li><strong className="text-[#1d1d1f]">sensor_history</strong>: Time-series collection with automatic data expiration (<code className="bg-[#eaeaea] text-[#1d1d1f] px-1 py-0.5 rounded">expireAfterSeconds</code>) for privacy retention compliance.</li>
+          <li><strong className="text-[#1d1d1f]">episodes</strong>: Stores longitudinal episodes with embeddings for semantic retrieval via <code className="bg-[#eaeaea] text-[#1d1d1f] px-1 py-0.5 rounded">$vectorSearch</code>.</li>
+        </ul>
+      </div>
+
+      {/* Atlas Connection Card */}
       <div className="rounded-3xl border border-[#e5e5ea] bg-white p-7 sm:p-8 space-y-4 shadow-sm">
         <div>
           <h3 className="text-sm font-bold text-[#1d1d1f]">
             Connect to MongoDB Atlas
           </h3>
           <p className="text-xs text-[#6e6e73] mt-0.5">
-            Optional: Enter your cluster connection string to sync live documents and vector embeddings.
+            Enter your cluster connection string to sync live documents and vector embeddings.
           </p>
         </div>
 

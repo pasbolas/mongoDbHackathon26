@@ -1,6 +1,5 @@
 import express from 'express';
-import { guardianEngine, STEPS_DEFINITION } from '../engine/guardian.js';
-import { VanishingCuesEngine } from '../engine/vanishingCues.js';
+import { anchorEngine, STEPS_DEFINITION } from '../engine/anchor.js';
 import { dbManager } from '../db.js';
 import { seedDatabase } from '../seed.js';
 
@@ -13,10 +12,9 @@ router.get('/events/stream', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders?.();
 
-  // Send initial state
-  res.write(`data: ${JSON.stringify({ event: 'CONNECTED', data: guardianEngine.getState() })}\n\n`);
+  res.write(`data: ${JSON.stringify({ event: 'CONNECTED', data: anchorEngine.getState() })}\n\n`);
 
-  const unsubscribe = guardianEngine.subscribe(payload => {
+  const unsubscribe = anchorEngine.subscribe(payload => {
     res.write(`data: ${JSON.stringify(payload)}\n\n`);
   });
 
@@ -25,9 +23,9 @@ router.get('/events/stream', (req, res) => {
   });
 });
 
-// Current guardian & simulation state
+// Current Anchor state
 router.get('/state', (req, res) => {
-  res.json(guardianEngine.getState());
+  res.json(anchorEngine.getState());
 });
 
 // Submit a perceived physical action
@@ -35,7 +33,7 @@ router.post('/action', async (req, res) => {
   try {
     const { action, metadata = {} } = req.body;
     if (!action) return res.status(400).json({ error: 'Action is required' });
-    const newState = await guardianEngine.handleAction(action, metadata);
+    const newState = await anchorEngine.handleAction(action, metadata);
     res.json(newState);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -46,35 +44,37 @@ router.post('/action', async (req, res) => {
 router.post('/idle', async (req, res) => {
   try {
     const { seconds = 5 } = req.body;
-    const newState = await guardianEngine.handleIdle(seconds);
+    const newState = await anchorEngine.handleIdle(seconds);
     res.json(newState);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Reset current session
+// Reset session
 router.post('/reset', (req, res) => {
-  guardianEngine.resetSession();
-  res.json({ message: 'Session reset', state: guardianEngine.getState() });
+  anchorEngine.resetSession();
+  res.json({ message: 'Session reset', state: anchorEngine.getState() });
 });
 
-// Longitudinal dashboard summary
+// Observable measurements & task profiles dashboard (Section 20)
 router.get('/dashboard', async (req, res) => {
   try {
-    const summary = await VanishingCuesEngine.getLongitudinalSummary('John', 'make_tea');
-    res.json(summary);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    const sessionCol = dbManager.getCollection('session_metrics');
+    const profilesCol = dbManager.getCollection('task_profiles');
+    const episodesCol = dbManager.getCollection('episodes');
 
-// Routines baseline
-router.get('/routines', async (req, res) => {
-  try {
-    const routinesCol = dbManager.getCollection('routines');
-    const routine = await routinesCol.findOne({ user: 'John', task: 'make_tea' });
-    res.json(routine || {});
+    const sessions = await sessionCol.find({});
+    const profiles = await profilesCol.find({ task: 'pack_bag' });
+    const totalEpisodes = await episodesCol.countDocuments({});
+
+    res.json({
+      user: 'sarah',
+      task: 'pack_bag',
+      observableSessions: sessions.sort((a, b) => a.sessionIndex - b.sessionIndex),
+      taskProfiles: profiles,
+      totalEpisodes
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -90,11 +90,11 @@ router.get('/db/status', async (req, res) => {
   }
 });
 
-// Inspect documents in a specific collection
+// Inspect collection documents
 router.get('/db/collection/:name', async (req, res) => {
   try {
     const { name } = req.params;
-    const allowed = ['routines', 'events', 'situations_vector', 'prompt_history', 'longitudinal_metrics'];
+    const allowed = ['episodes', 'task_profiles', 'live_events', 'sensor_history', 'session_metrics'];
     if (!allowed.includes(name)) {
       return res.status(400).json({ error: 'Invalid collection name' });
     }
@@ -111,13 +111,13 @@ router.get('/db/collection/:name', async (req, res) => {
   }
 });
 
-// Test and switch to a MongoDB Atlas URI
+// Connect to MongoDB Atlas
 router.post('/db/connect', async (req, res) => {
   try {
     const { uri } = req.body;
     const result = await dbManager.connect(uri);
     if (result.success && result.mode === 'atlas') {
-      await seedDatabase(false); // seed Atlas if needed
+      await seedDatabase(false);
     }
     const status = await dbManager.getStatus();
     res.json({ result, status });
@@ -130,79 +130,93 @@ router.post('/db/connect', async (req, res) => {
 router.post('/db/seed', async (req, res) => {
   try {
     await seedDatabase(true);
-    guardianEngine.resetSession();
-    const dashboard = await VanishingCuesEngine.getLongitudinalSummary('John', 'make_tea');
-    res.json({ success: true, message: 'Database re-seeded successfully', dashboard });
+    anchorEngine.resetSession();
+    res.json({ success: true, message: 'Database re-seeded successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Automated scenario runner
+// Automated scenario runners (Section 19: Demo Scenario)
 router.post('/scenarios/run', async (req, res) => {
   const { scenarioId } = req.body;
-  guardianEngine.resetSession();
+  anchorEngine.resetSession();
 
-  // Run in background and respond immediately with plan
-  const scriptPromise = (async () => {
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    if (scenarioId === 'independent') {
-      // Flawless independent execution - Silence is a Feature!
-      await sleep(600);
-      await guardianEngine.handleAction('kettle_fill');
+  // Run scenario steps in background
+  (async () => {
+    if (scenarioId === 'execution_1') {
+      // First execution: Sarah packs wallet, keys, phone, stops.
+      // System waits -> Task uncertainty -> Subtle cue: "Anything else you normally take with you?"
+      await sleep(500);
+      await anchorEngine.handleAction('bag_open');
       await sleep(1000);
-      await guardianEngine.handleAction('kettle_boil');
+      await anchorEngine.handleAction('wallet_added');
       await sleep(1000);
-      await guardianEngine.handleAction('take_mug');
+      await anchorEngine.handleAction('keys_added');
       await sleep(1000);
-      await guardianEngine.handleAction('take_teabag');
+      await anchorEngine.handleAction('phone_added');
       await sleep(1000);
-      await guardianEngine.handleAction('pour_water');
-      await sleep(1000);
-      await guardianEngine.handleAction('add_milk');
-    } else if (scenarioId === 'confusion_mug') {
-      // Loop confusion: Cupboard opened repeatedly -> Vector Search -> Level 1 prompt -> Success
-      await sleep(600);
-      await guardianEngine.handleAction('kettle_fill');
-      await sleep(1000);
-      await guardianEngine.handleAction('kettle_boil');
-      await sleep(1000);
-      await guardianEngine.handleAction('cupboard_open');
-      await sleep(1000);
-      await guardianEngine.handleAction('cupboard_close');
-      await sleep(1000);
-      await guardianEngine.handleAction('cupboard_open'); // Trigger loop detection
-      await sleep(2500); // Allow prompt to be seen
-      await guardianEngine.handleAction('take_mug'); // Responded to prompt!
-      await sleep(1000);
-      await guardianEngine.handleAction('take_teabag');
-      await sleep(1000);
-      await guardianEngine.handleAction('pour_water');
-      await sleep(1000);
-      await guardianEngine.handleAction('add_milk');
-    } else if (scenarioId === 'escalation') {
-      // Severe hesitation: Water boils, John stands idle -> Level 1 prompt -> still stuck -> Level 2 escalation
-      await sleep(600);
-      await guardianEngine.handleAction('kettle_fill');
-      await sleep(1000);
-      await guardianEngine.handleAction('kettle_boil');
-      await sleep(1000);
-      await guardianEngine.handleIdle(16); // Exceeds threshold -> Level 1 prompt
-      await sleep(2500);
-      await guardianEngine.handleIdle(12); // Exceeds grace -> Escalates to Level 2
+      // Sarah pauses. System enters deliberate WAIT.
+      await anchorEngine.handleIdle(10); // Observing & waiting
+      await sleep(1200);
+      await anchorEngine.handleIdle(12); // Exceeds uncertainty threshold -> Level 1 cue delivered
       await sleep(3000);
-      await guardianEngine.handleAction('take_mug'); // User follows Level 2 prompt
+      // Sarah remembers notebook after subtle cue
+      await anchorEngine.handleAction('notebook_added');
+      await sleep(1200);
+      await anchorEngine.handleAction('water_added');
       await sleep(1000);
-      await guardianEngine.handleAction('take_teabag');
+      await anchorEngine.handleAction('bag_close');
+    } else if (scenarioId === 'execution_2') {
+      // Second execution: Sarah pauses at same point.
+      // Vector search retrieves previous episode. Even shorter prompt: "Anything else?"
+      await sleep(500);
+      await anchorEngine.handleAction('bag_open');
       await sleep(1000);
-      await guardianEngine.handleAction('pour_water');
+      await anchorEngine.handleAction('wallet_added');
       await sleep(1000);
-      await guardianEngine.handleAction('add_milk');
+      await anchorEngine.handleAction('keys_added');
+      await sleep(1000);
+      await anchorEngine.handleAction('phone_added');
+      await sleep(1000);
+      await anchorEngine.handleIdle(22); // Triggers prompt
+      if (anchorEngine.activePrompt) {
+        anchorEngine.activePrompt.text = 'Anything else?';
+        anchorEngine.notify('INTERVENTION_TRIGGERED', { prompt: anchorEngine.activePrompt, state: anchorEngine.getState() });
+      }
+      await sleep(3000);
+      await anchorEngine.handleAction('notebook_added');
+      await sleep(1200);
+      await anchorEngine.handleAction('water_added');
+      await sleep(1000);
+      await anchorEngine.handleAction('bag_close');
+    } else if (scenarioId === 'execution_3') {
+      // Third execution: Sarah pauses briefly.
+      // System waits. Sarah remembers notebook herself. Anchor says NOTHING!
+      await sleep(500);
+      await anchorEngine.handleAction('bag_open');
+      await sleep(1000);
+      await anchorEngine.handleAction('wallet_added');
+      await sleep(1000);
+      await anchorEngine.handleAction('keys_added');
+      await sleep(1000);
+      await anchorEngine.handleAction('phone_added');
+      await sleep(1000);
+      // Sarah pauses briefly for 8 seconds. Anchor deliberately stays quiet!
+      await anchorEngine.handleIdle(8);
+      await sleep(1500);
+      // Sarah remembers on her own! No prompt ever given.
+      await anchorEngine.handleAction('notebook_added');
+      await sleep(1200);
+      await anchorEngine.handleAction('water_added');
+      await sleep(1000);
+      await anchorEngine.handleAction('bag_close');
     }
   })();
 
-  res.json({ message: `Scenario '${scenarioId}' initiated. Follow live via stream or state.` });
+  res.json({ message: `Execution '${scenarioId}' initiated.` });
 });
 
 export default router;

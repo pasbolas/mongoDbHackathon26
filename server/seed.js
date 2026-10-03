@@ -1,279 +1,240 @@
 import { dbManager } from './db.js';
-import { generateSituationEmbedding } from './engine/vectorSearch.js';
+import { generateEpisodeEmbedding } from './engine/vectorSearch.js';
 
 export async function seedDatabase(force = false) {
-  const routinesCol = dbManager.getCollection('routines');
-  const existingRoutine = await routinesCol.findOne({ user: 'John', task: 'make_tea' });
+  const episodesCol = dbManager.getCollection('episodes');
+  const existingEpisode = await episodesCol.findOne({ userId: 'sarah', task: 'pack_bag' });
 
-  if (existingRoutine && !force) {
-    console.log('🌱 Database already contains seed data for John.');
+  if (existingEpisode && !force) {
+    console.log('🌱 Database already contains seed data for Sarah (Anchor).');
     return;
   }
 
-  console.log('🌱 Seeding MongoDB collections for Adaptive Memory Guardian...');
+  console.log('🌱 Seeding MongoDB collections for Anchor (Privacy-First Adaptive Assistance)...');
 
-  // 1. Routine Collection (John's personal baseline)
-  await routinesCol.deleteMany({ user: 'John' });
-  await routinesCol.insertOne({
-    user: 'John',
-    task: 'make_tea',
-    title: "John's Morning Tea Routine",
-    normalSequence: [
-      'fill_kettle',
-      'boil_water',
-      'get_mug',
-      'get_teabag',
-      'pour_water',
-      'add_milk'
-    ],
-    assistance: {
-      fill_kettle: {
-        title: 'Fill Kettle',
-        attempts: 32,
-        independentCompletions: 31,
-        currentPromptLevel: 0, // Fully autonomous!
-        idleThresholdSeconds: 22,
-        consecutiveIndependent: 12,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'The tap is by the sink.',
-          level_2: 'Fill the kettle with cold water at the sink.',
-          level_3: 'Take the kettle, walk to the sink, and fill it halfway.'
-        }
-      },
-      boil_water: {
-        title: 'Boil Water',
-        attempts: 32,
-        independentCompletions: 30,
-        currentPromptLevel: 0, // Fully autonomous!
-        idleThresholdSeconds: 20,
-        consecutiveIndependent: 9,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'The kettle switch is ready.',
-          level_2: 'Place kettle on its base and press down the switch.',
-          level_3: 'Press down the power switch on the base of the kettle to boil water.'
-        }
-      },
-      get_mug: {
-        title: 'Get Mug',
-        attempts: 32,
-        independentCompletions: 23,
-        currentPromptLevel: 1, // Vanished from Level 3 -> Level 1!
-        idleThresholdSeconds: 15,
-        consecutiveIndependent: 3,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'Your mug is nearby.',
-          level_2: 'Your mug is in the cupboard beside the kettle.',
-          level_3: 'Open the cupboard on your left and take the blue mug.'
-        }
-      },
-      get_teabag: {
-        title: 'Get Tea Bag',
-        attempts: 32,
-        independentCompletions: 28,
-        currentPromptLevel: 0,
-        idleThresholdSeconds: 18,
-        consecutiveIndependent: 6,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'The tea box is on the counter.',
-          level_2: 'Take an Earl Grey tea bag from the counter box.',
-          level_3: 'Pick up one tea bag from the tea box and place it inside your blue mug.'
-        }
-      },
-      pour_water: {
-        title: 'Pour Water',
-        attempts: 32,
-        independentCompletions: 29,
-        currentPromptLevel: 0,
-        idleThresholdSeconds: 18,
-        consecutiveIndependent: 8,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'The water has boiled.',
-          level_2: 'The boiled kettle is ready to pour into your mug.',
-          level_3: 'Carefully lift the kettle and pour hot water into your mug.'
-        }
-      },
-      add_milk: {
-        title: 'Add Milk',
-        attempts: 32,
-        independentCompletions: 26,
-        currentPromptLevel: 1,
-        idleThresholdSeconds: 16,
-        consecutiveIndependent: 4,
-        consecutiveStuck: 0,
-        cues: {
-          level_1: 'Milk is in the fridge door.',
-          level_2: 'Take the milk from the fridge door and add a splash.',
-          level_3: 'Open the fridge, take the milk, and pour a small splash into your mug.'
-        }
-      }
-    },
-    updatedAt: new Date()
-  });
+  // 1. Episodes Collection (Historical episodic memory for Atlas Vector Search)
+  await episodesCol.deleteMany({ userId: 'sarah' });
 
-  // 2. Situations Vector Collection (Semantic history for Atlas Vector Search)
-  const situationsCol = dbManager.getCollection('situations_vector');
-  await situationsCol.deleteMany({});
-
-  const situationExamples = [
+  const pastEpisodes = [
     {
-      situationId: 'sit_mug_search_loop',
-      title: 'Cupboard Opened Repeatedly (Looking for Mug)',
-      description: 'John is in kitchen. Kettle has boiled. Cupboard opened twice. No mug retrieved. Idle for 25 seconds.',
-      problemType: 'cant_find_mug',
-      currentStep: 'get_mug',
-      recentActions: ['open_cupboard', 'close_cupboard', 'open_cupboard'],
-      idleSeconds: 25,
-      repeatedAction: true,
-      successfulPromptLevel: 1,
-      promptText: 'Your mug is nearby in the cupboard.',
-      resolutionAction: 'take_mug',
-      historicalSuccessRate: 0.94
+      episodeId: 'ep_017',
+      userId: 'sarah',
+      task: 'pack_bag',
+      title: 'Episode #17: Inactivity after phone/wallet/keys',
+      context: {
+        completed: ['wallet', 'keys', 'phone'],
+        remaining: ['notebook', 'water_bottle'],
+        idleSeconds: 42,
+        currentStep: 'notebook'
+      },
+      intervention: {
+        type: 'subtle_verbal',
+        text: 'Anything else you normally take with you?',
+        successful: true,
+        level: 1
+      },
+      episodeSummary: 'Sarah paused after packing phone, wallet and keys. A subtle reminder successfully resumed the activity.',
+      timestamp: new Date(Date.now() - 86400000 * 3)
     },
     {
-      situationId: 'sit_idle_post_boil',
-      title: 'Idle Hesitation Post-Boiling',
-      description: 'Kettle has clicked off. Standing still for 20 seconds without initiating next step.',
-      problemType: 'cant_find_mug',
-      currentStep: 'get_mug',
-      recentActions: ['kettle_boil', 'standing_still'],
-      idleSeconds: 20,
-      repeatedAction: false,
-      successfulPromptLevel: 1,
-      promptText: 'Your mug is in the cupboard.',
-      resolutionAction: 'take_mug',
-      historicalSuccessRate: 0.89
+      episodeId: 'ep_012',
+      userId: 'sarah',
+      task: 'pack_bag',
+      title: 'Episode #12: Notebook forgotten on desk',
+      context: {
+        completed: ['wallet', 'keys', 'phone'],
+        remaining: ['notebook'],
+        idleSeconds: 50,
+        currentStep: 'notebook'
+      },
+      intervention: {
+        type: 'spatial_cue',
+        text: 'Your notebook is on the desk.',
+        successful: true,
+        level: 2
+      },
+      episodeSummary: 'Sarah forgot notebook before university. Spatial cue on desk worked.',
+      timestamp: new Date(Date.now() - 86400000 * 7)
     },
     {
-      situationId: 'sit_fridge_distraction',
-      title: 'Opened Fridge Instead of Tea Box',
-      description: 'Mug on counter. John went to fridge instead of taking teabag from pantry box.',
-      problemType: 'forgot_teabag',
-      currentStep: 'get_teabag',
-      recentActions: ['open_fridge', 'close_fridge'],
-      idleSeconds: 15,
-      repeatedAction: false,
-      successfulPromptLevel: 1,
-      promptText: 'The tea box is on the counter.',
-      resolutionAction: 'take_teabag',
-      historicalSuccessRate: 0.88
-    },
-    {
-      situationId: 'sit_pour_unboiled',
-      title: 'Premature Pour Attempt (Unboiled Water)',
-      description: 'Kettle filled but boil switch not pressed. Lifted kettle towards mug.',
-      problemType: 'boil_hesitation',
-      currentStep: 'boil_water',
-      recentActions: ['kettle_fill', 'touch_kettle'],
-      idleSeconds: 10,
-      repeatedAction: false,
-      successfulPromptLevel: 2,
-      promptText: 'Switch on the kettle to boil water first.',
-      resolutionAction: 'kettle_boil',
-      historicalSuccessRate: 0.91
+      episodeId: 'ep_008',
+      userId: 'sarah',
+      task: 'pack_bag',
+      title: 'Episode #08: Unpacking bag in evening',
+      context: {
+        completed: [],
+        remaining: [],
+        idleSeconds: 20,
+        currentStep: ''
+      },
+      intervention: {
+        type: 'none',
+        text: '',
+        successful: true,
+        level: 0
+      },
+      episodeSummary: 'Sarah was unpacking bag. No intervention required.',
+      timestamp: new Date(Date.now() - 86400000 * 14)
     }
   ];
 
-  for (const sit of situationExamples) {
-    sit.vector = generateSituationEmbedding({
-      task: 'make_tea',
-      currentStep: sit.currentStep,
-      recentActions: sit.recentActions,
-      idleSeconds: sit.idleSeconds,
-      repeatedAction: sit.repeatedAction,
-      problemHint: sit.problemType
-    });
+  for (const ep of pastEpisodes) {
+    ep.embedding = generateEpisodeEmbedding(ep.context);
   }
 
-  await situationsCol.insertMany(situationExamples);
+  await episodesCol.insertMany(pastEpisodes);
 
-  // 3. Longitudinal Metrics Collection (Weekly Progress)
-  const metricsCol = dbManager.getCollection('longitudinal_metrics');
-  await metricsCol.deleteMany({ user: 'John' });
+  // 2. Task Profiles Collection (Sarah's assistance profiles per step)
+  const profilesCol = dbManager.getCollection('task_profiles');
+  await profilesCol.deleteMany({ task: 'pack_bag' });
 
-  await metricsCol.insertMany([
+  await profilesCol.insertMany([
     {
-      user: 'John',
-      task: 'make_tea',
-      weekIndex: 1,
-      weekLabel: 'Week 1',
-      independenceRate: 72,
-      promptsNeeded: 7,
-      independentSteps: 18,
-      totalSteps: 25,
-      avgHesitationSec: 28,
-      notes: 'Initial baseline: Required Level 3 explicit step-by-step guidance for mug retrieval and tea bag.'
+      task: 'pack_bag',
+      step: 'notebook',
+      history: {
+        attempts: 18,
+        independent: 12
+      },
+      promptHistory: {
+        subtleCue: { attempts: 4, successful: 3 },
+        explicitCue: { attempts: 2, successful: 2 }
+      },
+      effectivePreferences: {
+        subtleVerbal: 0.85,
+        spatialCue: 0.65,
+        explicitInstruction: 0.25
+      }
     },
     {
-      user: 'John',
-      task: 'make_tea',
-      weekIndex: 2,
-      weekLabel: 'Week 2',
-      independenceRate: 81,
-      promptsNeeded: 4,
-      independentSteps: 22,
-      totalSteps: 27,
-      avgHesitationSec: 21,
-      notes: 'Vanishing assistance begins: Reduced prompts to Level 2 contextual cues. Hesitation decreased.'
+      task: 'pack_bag',
+      step: 'water_bottle',
+      history: {
+        attempts: 18,
+        independent: 15
+      },
+      promptHistory: {
+        subtleCue: { attempts: 2, successful: 2 },
+        explicitCue: { attempts: 1, successful: 1 }
+      },
+      effectivePreferences: {
+        subtleVerbal: 0.9,
+        spatialCue: 0.4
+      }
     },
     {
-      user: 'John',
-      task: 'make_tea',
-      weekIndex: 3,
-      weekLabel: 'Week 3',
-      independenceRate: 89,
-      promptsNeeded: 2,
-      independentSteps: 25,
-      totalSteps: 28,
-      avgHesitationSec: 15,
-      notes: 'Significant improvement: Mug retrieval prompt successfully vanished down to Level 1 subtle nudge.'
+      task: 'pack_bag',
+      step: 'wallet',
+      history: {
+        attempts: 18,
+        independent: 18
+      },
+      promptHistory: {
+        subtleCue: { attempts: 0, successful: 0 }
+      }
     },
     {
-      user: 'John',
-      task: 'make_tea',
-      weekIndex: 4,
-      weekLabel: 'Week 4 (Current)',
-      independenceRate: 95,
-      promptsNeeded: 1,
-      independentSteps: 29,
-      totalSteps: 30,
-      avgHesitationSec: 12,
-      notes: 'Autonomous mastery: Kettle boiling and tea bag handling are completely independent with 0 prompts.'
+      task: 'pack_bag',
+      step: 'keys',
+      history: {
+        attempts: 18,
+        independent: 17
+      },
+      promptHistory: {
+        subtleCue: { attempts: 1, successful: 1 }
+      }
+    },
+    {
+      task: 'pack_bag',
+      step: 'phone',
+      history: {
+        attempts: 18,
+        independent: 16
+      },
+      promptHistory: {
+        subtleCue: { attempts: 2, successful: 2 }
+      }
     }
   ]);
 
-  // 4. Prompt History Collection
-  const promptHistoryCol = dbManager.getCollection('prompt_history');
-  await promptHistoryCol.deleteMany({ user: 'John' });
+  // 3. Session Metrics Collection (Observable Measurements from Section 20)
+  const sessionCol = dbManager.getCollection('session_metrics');
+  await sessionCol.deleteMany({});
 
-  await promptHistoryCol.insertMany([
+  await sessionCol.insertMany([
     {
-      user: 'John',
-      task: 'make_tea',
-      stepKey: 'get_mug',
-      promptLevel: 1,
-      promptText: 'Your mug is in the cupboard beside the fridge.',
-      vectorMatch: { title: 'Cupboard Opened Repeatedly (Looking for Mug)', score: 0.94 },
-      outcome: 'RESOLVED_BY_PROMPT',
-      timeToResolveSec: 4,
-      resolvedAt: new Date(Date.now() - 86400000 * 2)
+      sessionIndex: 1,
+      label: 'Session 1',
+      independentSteps: '3 / 5',
+      independentCount: 3,
+      totalSteps: 5,
+      promptsRequired: 2,
+      averagePromptLevel: 2.0,
+      notes: 'Required subtle verbal cue for notebook and spatial cue for water bottle.'
     },
     {
-      user: 'John',
-      task: 'make_tea',
-      stepKey: 'add_milk',
-      promptLevel: 1,
-      promptText: 'Milk is in the fridge door.',
-      vectorMatch: { title: 'Opened Fridge Instead of Tea Box', score: 0.88 },
-      outcome: 'RESOLVED_BY_PROMPT',
-      timeToResolveSec: 3,
-      resolvedAt: new Date(Date.now() - 86400000)
+      sessionIndex: 2,
+      label: 'Session 2',
+      independentSteps: '4 / 5',
+      independentCount: 4,
+      totalSteps: 5,
+      promptsRequired: 1,
+      averagePromptLevel: 1.0,
+      notes: 'Water bottle packed independently. Subtle reminder ("Anything else?") used for notebook.'
+    },
+    {
+      sessionIndex: 3,
+      label: 'Session 3',
+      independentSteps: '5 / 5',
+      independentCount: 5,
+      totalSteps: 5,
+      promptsRequired: 0,
+      averagePromptLevel: 0.0,
+      notes: 'Sarah paused briefly. Anchor observed and waited. Sarah remembered notebook herself. Anchor did nothing.'
     }
   ]);
 
-  console.log('✅ Seed data successfully initialized!');
+  // 4. Live Events Collection (Actionable live collection for Atlas Triggers)
+  const liveEventsCol = dbManager.getCollection('live_events');
+  await liveEventsCol.deleteMany({});
+  await liveEventsCol.insertMany([
+    {
+      timestamp: new Date(Date.now() - 120000),
+      user: 'sarah',
+      task: 'pack_bag',
+      event: 'bag_open',
+      confidence: 0.96,
+      privacy: 'frame_discarded_locally'
+    },
+    {
+      timestamp: new Date(Date.now() - 90000),
+      user: 'sarah',
+      task: 'pack_bag',
+      event: 'wallet_added',
+      confidence: 0.95,
+      privacy: 'frame_discarded_locally'
+    },
+    {
+      timestamp: new Date(Date.now() - 60000),
+      user: 'sarah',
+      task: 'pack_bag',
+      event: 'keys_added',
+      confidence: 0.94,
+      privacy: 'frame_discarded_locally'
+    }
+  ]);
+
+  // 5. Sensor History (Time-Series with simulated TTL expireAfterSeconds)
+  const sensorCol = dbManager.getCollection('sensor_history');
+  await sensorCol.deleteMany({});
+  await sensorCol.insertMany([
+    {
+      timestamp: new Date(Date.now() - 120000),
+      metadata: { user: 'sarah', task: 'pack_bag' },
+      event: 'bag_open',
+      expireAfterSeconds: 604800 // 7 days retention policy
+    }
+  ]);
+
+  console.log('✅ Anchor seed data initialized successfully!');
 }

@@ -1,116 +1,73 @@
 import { dbManager, cosineSimilarity } from '../db.js';
 
-// Feature dictionary to generate deterministic, normalized embeddings
-// representing cognitive states and contextual situations
-const VOCABULARY = [
-  // Actions
-  'fill_kettle', 'boil_water', 'kettle_boiling', 'open_cupboard', 'close_cupboard',
-  'get_mug', 'look_in_cupboard', 'open_drawer', 'open_fridge', 'get_teabag',
-  'pour_water', 'add_milk', 'standing_still', 'idle_short', 'idle_long',
-  'wandering', 'check_counter', 'touch_kettle', 'repeat_action', 'searching',
-  // Locations & Objects
-  'kitchen', 'sink', 'kettle', 'cupboard', 'fridge', 'drawer', 'counter',
-  'mug_blue', 'teabag_box', 'milk_carton', 'teaspoon',
-  // Cognitive states
-  'focused', 'hesitant', 'looping', 'stuck', 'confused_location', 'forgot_step',
-  'sequence_inversion', 'object_misplacement'
-];
-
 /**
- * Generates a normalized semantic feature vector for a situation context
+ * Generates a normalized semantic feature vector for Sarah's activity episode context
  * @param {Object} context
  * @returns {Array<number>} 32-element normalized embedding
  */
-export function generateSituationEmbedding(context) {
+export function generateEpisodeEmbedding(context) {
   const {
-    task = 'make_tea',
-    currentStep = '',
-    recentActions = [],
+    task = 'pack_bag',
+    completed = [],
+    remaining = [],
     idleSeconds = 0,
-    repeatedAction = false,
-    location = 'kitchen',
-    problemHint = ''
+    reopenedBag = false,
+    currentStep = ''
   } = context;
 
-  const vector = new Array(32).fill(0.05);
+  const vector = new Array(32).fill(0.04);
 
-  // Dimension 0-3: Task context
-  if (task === 'make_tea') vector[0] = 0.9;
-  if (location === 'kitchen') vector[1] = 0.85;
+  // Dimension 0-2: Task representation
+  if (task === 'pack_bag') vector[0] = 0.95;
 
-  // Dimension 4-9: Target step
-  const stepIndexMap = {
-    fill_kettle: 4,
-    boil_water: 5,
-    get_mug: 6,
-    get_teabag: 7,
-    pour_water: 8,
-    add_milk: 9
-  };
-  if (currentStep && stepIndexMap[currentStep] !== undefined) {
-    vector[stepIndexMap[currentStep]] = 0.95;
-  }
+  // Dimension 3-7: Packed items indicators
+  if (completed.includes('wallet')) vector[3] = 0.9;
+  if (completed.includes('keys')) vector[4] = 0.9;
+  if (completed.includes('phone')) vector[5] = 0.9;
+  if (completed.includes('notebook')) vector[6] = 0.9;
+  if (completed.includes('water_bottle')) vector[7] = 0.9;
 
-  // Dimension 10-15: Recent action pattern & repetition
-  const actionCounts = {};
-  for (const act of recentActions) {
-    actionCounts[act] = (actionCounts[act] || 0) + 1;
-  }
+  // Dimension 8-12: Remaining items
+  if (remaining.includes('notebook') || currentStep === 'notebook') vector[8] = 0.92;
+  if (remaining.includes('water_bottle') || currentStep === 'water_bottle') vector[9] = 0.88;
 
-  if (actionCounts['open_cupboard']) vector[10] = Math.min(1.0, actionCounts['open_cupboard'] * 0.4);
-  if (actionCounts['close_cupboard']) vector[11] = Math.min(1.0, actionCounts['close_cupboard'] * 0.4);
-  if (actionCounts['open_fridge']) vector[12] = Math.min(1.0, actionCounts['open_fridge'] * 0.5);
-  if (actionCounts['open_drawer']) vector[13] = Math.min(1.0, actionCounts['open_drawer'] * 0.5);
-  if (repeatedAction || (actionCounts['open_cupboard'] && actionCounts['open_cupboard'] >= 2)) {
-    vector[14] = 0.92; // loop detection flag
-  }
-
-  // Dimension 16-20: Idle duration magnitude
+  // Dimension 13-17: Inactivity / idle duration magnitude
   if (idleSeconds > 0) {
-    const idleNorm = Math.min(1.0, idleSeconds / 30);
-    vector[16] = idleNorm;
-    if (idleSeconds > 15) vector[17] = 0.88;
-    if (idleSeconds > 30) vector[18] = 0.95;
+    const idleNorm = Math.min(1.0, idleSeconds / 45);
+    vector[13] = idleNorm;
+    if (idleSeconds >= 25) vector[14] = 0.85;
+    if (idleSeconds >= 40) vector[15] = 0.95;
   }
 
-  // Dimension 21-25: Semantic Problem Type
-  if (problemHint === 'cant_find_mug' || currentStep === 'get_mug') {
-    vector[21] = 0.92;
-    vector[22] = 0.84;
-  } else if (problemHint === 'forgot_teabag' || currentStep === 'get_teabag') {
-    vector[23] = 0.91;
-  } else if (problemHint === 'boil_hesitation' || currentStep === 'boil_water') {
-    vector[24] = 0.87;
+  // Dimension 18-20: Behavioral anomaly pattern
+  if (reopenedBag) vector[18] = 0.94; // Bag closed then reopened
+  if (completed.length === 3 && remaining.includes('notebook')) {
+    vector[19] = 0.96; // Signature pause point after phone/wallet/keys
   }
 
-  // Dimension 26-31: Anomaly indicators
-  if (recentActions.length >= 3 && recentActions[recentActions.length - 1] === recentActions[recentActions.length - 3]) {
-    vector[26] = 0.94; // ping-pong oscillation
-  }
-
-  // Normalize to unit length
+  // Normalize vector to unit length
   const norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
   return vector.map(v => (norm > 0 ? Number((v / norm).toFixed(5)) : 0));
 }
 
 /**
- * Searches MongoDB Atlas Vector Search or local vector index for matching past situations
+ * Searches MongoDB Atlas Vector Search or local vector index for matching past episodes
  * @param {Object} queryContext
  * @param {number} limit
- * @returns {Promise<Array>} Ranked matching historical situations with similarity scores
+ * @returns {Promise<Array>} Ranked matching historical episodes with similarity scores
  */
-export async function searchSimilarSituations(queryContext, limit = 3) {
-  const queryVector = generateSituationEmbedding(queryContext);
-  const collection = dbManager.getCollection('situations_vector');
+export async function searchSimilarEpisodes(queryContext, limit = 3) {
+  const queryVector = generateEpisodeEmbedding(queryContext);
+  const collection = dbManager.getCollection('episodes');
 
-  // If connected to Atlas with active db and vector index
+  // If connected to MongoDB Atlas with active db
   if (dbManager.isAtlas && dbManager.db) {
     try {
       const pipeline = [
         {
           $vectorSearch: {
-            index: 'situation_vector_index',
-            path: 'vector',
+            index: 'episode_vector_index',
+            path: 'embedding',
             queryVector: queryVector,
             numCandidates: 20,
             limit: limit
@@ -119,13 +76,13 @@ export async function searchSimilarSituations(queryContext, limit = 3) {
         {
           $project: {
             _id: 1,
-            situationId: 1,
+            episodeId: 1,
             title: 1,
-            description: 1,
-            problemType: 1,
-            successfulPromptLevel: 1,
-            promptText: 1,
-            resolutionAction: 1,
+            episodeSummary: 1,
+            task: 1,
+            context: 1,
+            intervention: 1,
+            promptLevel: 1,
             score: { $meta: 'vectorSearchScore' }
           }
         }
@@ -137,18 +94,17 @@ export async function searchSimilarSituations(queryContext, limit = 3) {
         return results;
       }
     } catch (atlasErr) {
-      console.warn('Atlas $vectorSearch pipeline fallback to collection scan:', atlasErr.message);
-      // Fallback to manual cosine similarity over Atlas documents
+      console.warn('Atlas $vectorSearch fallback to manual cosine scan:', atlasErr.message);
       const docs = await collection.find({}).toArray();
       return rankByCosine(docs, queryVector, limit);
     }
   }
 
-  // Local collection mode (with cosine similarity)
+  // Local collection mode (with cosine similarity search)
   if (typeof collection.vectorSearch === 'function') {
     const localResults = await collection.vectorSearch({
       queryVector,
-      path: 'vector',
+      path: 'embedding',
       limit,
       minScore: 0.4
     });
@@ -161,7 +117,7 @@ export async function searchSimilarSituations(queryContext, limit = 3) {
 
 function rankByCosine(docs, queryVector, limit) {
   const scored = docs.map(doc => {
-    const docVec = doc.vector || [];
+    const docVec = doc.embedding || doc.vector || [];
     const score = cosineSimilarity(queryVector, docVec);
     return {
       ...doc,

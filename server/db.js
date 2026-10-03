@@ -16,7 +16,7 @@ if (!fs.existsSync(DATA_DIR)) {
   }
 }
 
-// In-Memory / Local JSON persistent MongoDB mock implementation
+// In-Memory / Local JSON persistent MongoDB implementation
 class LocalCollection {
   constructor(name) {
     this.name = name;
@@ -167,7 +167,7 @@ class LocalCollection {
   // Simulated Atlas Vector Search using cosine similarity
   async vectorSearch({ queryVector, path: vectorPath, limit = 5, minScore = 0.5 }) {
     const scoredDocs = this.documents.map(doc => {
-      const docVec = doc[vectorPath];
+      const docVec = doc[vectorPath] || doc.embedding;
       if (!Array.isArray(docVec) || docVec.length === 0) {
         return { ...doc, score: 0 };
       }
@@ -205,11 +205,11 @@ class DatabaseManager {
     this.atlasUri = process.env.MONGODB_URI || '';
     this.statusMessage = 'Initialized Local Embedded Store';
     this.localCollections = {
-      routines: new LocalCollection('routines'),
-      events: new LocalCollection('events'),
-      situations_vector: new LocalCollection('situations_vector'),
-      prompt_history: new LocalCollection('prompt_history'),
-      longitudinal_metrics: new LocalCollection('longitudinal_metrics'),
+      episodes: new LocalCollection('episodes'),
+      task_profiles: new LocalCollection('task_profiles'),
+      live_events: new LocalCollection('live_events'),
+      sensor_history: new LocalCollection('sensor_history'),
+      session_metrics: new LocalCollection('session_metrics'),
     };
   }
 
@@ -232,11 +232,11 @@ class DatabaseManager {
       await client.db('admin').command({ ping: 1 });
 
       this.client = client;
-      this.db = client.db('adaptive_guardian');
+      this.db = client.db('anchor_guardian');
       this.atlasUri = uri;
       this.isAtlas = true;
       this.statusMessage = 'Connected to MongoDB Atlas';
-      console.log('✅ Connected successfully to MongoDB Atlas cluster!');
+      console.log('✅ Connected successfully to MongoDB Atlas cluster (anchor_guardian)!');
       return { success: true, mode: 'atlas' };
     } catch (err) {
       console.warn('⚠️ Could not connect to MongoDB Atlas:', err.message);
@@ -258,16 +258,12 @@ class DatabaseManager {
 
   async getStatus() {
     const counts = {};
-    const collectionNames = ['routines', 'events', 'situations_vector', 'prompt_history', 'longitudinal_metrics'];
+    const collectionNames = ['episodes', 'task_profiles', 'live_events', 'sensor_history', 'session_metrics'];
 
     for (const name of collectionNames) {
       try {
         const col = this.getCollection(name);
-        if (this.isAtlas && this.db) {
-          counts[name] = await col.countDocuments();
-        } else {
-          counts[name] = await col.countDocuments();
-        }
+        counts[name] = await col.countDocuments();
       } catch {
         counts[name] = 0;
       }
@@ -276,10 +272,10 @@ class DatabaseManager {
     return {
       connected: true,
       isAtlas: this.isAtlas,
-      mode: this.isAtlas ? 'MongoDB Atlas' : 'Local Hybrid Embedded Store',
+      mode: this.isAtlas ? 'MongoDB Atlas' : 'Local Hybrid Store',
       statusMessage: this.statusMessage,
       atlasUriConfigured: Boolean(this.atlasUri),
-      databaseName: 'adaptive_guardian',
+      databaseName: 'anchor_guardian',
       counts,
     };
   }
