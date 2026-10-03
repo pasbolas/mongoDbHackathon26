@@ -1,7 +1,8 @@
-import { spawn, exec } from 'child_process';
+import { exec } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import ffmpegPath from 'ffmpeg-static';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,37 +14,57 @@ if (!fs.existsSync(VIDEOS_DIR)) {
 }
 
 /**
- * Downloads a YouTube video using yt-dlp binary
+ * Downloads or retrieves a cached YouTube video using yt-dlp + ffmpeg-static + Node JS runtime
  * @param {string} url
  * @returns {Promise<{ filename: string, videoUrl: string, title?: string }>}
  */
 export function downloadYouTubeVideo(url) {
   return new Promise((resolve, reject) => {
-    if (!url || typeof url !== 'string') {
+    if (!url || typeof url !== 'string' || !url.trim()) {
       return reject(new Error('Invalid URL provided'));
     }
 
-    console.log('🎬 Starting YouTube video download:', url);
+    const trimmedUrl = url.trim();
+    console.log('🎬 Ingesting YouTube video:', trimmedUrl);
 
-    // Get video info / title first
-    const titleProcess = exec(`"${YTDLP_PATH}" --no-playlist --print "%(title)s" "${url}"`, (err, stdout) => {
-      const videoTitle = stdout ? stdout.trim() : 'YouTube Video';
+    // 1. Extract video ID and Title first
+    const infoCmd = `"${YTDLP_PATH}" --js-runtimes node --no-playlist --print "%(id)s|||%(title)s" "${trimmedUrl}"`;
 
-      // Download format: mp4 (up to 720p for fast processing)
-      const outputTemplate = path.join(VIDEOS_DIR, '%(id)s.%(ext)s');
-      const downloadCmd = `"${YTDLP_PATH}" --no-playlist -f "best[ext=mp4][height<=720]/best[ext=mp4]/best" -o "${outputTemplate}" --print filename "${url}"`;
+    exec(infoCmd, { timeout: 30000 }, (infoErr, infoStdout) => {
+      let videoId = 'video_' + Date.now();
+      let videoTitle = 'YouTube Video';
 
-      exec(downloadCmd, { timeout: 120000 }, (dlErr, dlStdout, dlStderr) => {
+      if (!infoErr && infoStdout) {
+        const parts = infoStdout.trim().split('|||');
+        if (parts[0]) videoId = parts[0].trim();
+        if (parts[1]) videoTitle = parts[1].trim();
+      }
+
+      // Check if already downloaded in cache
+      const cachedFile = path.join(VIDEOS_DIR, `${videoId}.mp4`);
+      if (fs.existsSync(cachedFile)) {
+        console.log('⚡ Found video in local cache:', `${videoId}.mp4`);
+        return resolve({
+          filename: `${videoId}.mp4`,
+          videoUrl: `/api/video/file/${videoId}.mp4`,
+          title: videoTitle
+        });
+      }
+
+      // 2. Download 360p/480p with Node JS runtime and static FFmpeg for audio/video muxing
+      const outputTemplate = path.join(VIDEOS_DIR, `${videoId}.%(ext)s`);
+      const downloadCmd = `"${YTDLP_PATH}" --js-runtimes node --ffmpeg-location "${ffmpegPath}" --no-playlist -f "bestvideo[height<=480]+bestaudio/best[height<=480]/bestvideo+bestaudio/best" --merge-output-format mp4 -o "${outputTemplate}" "${trimmedUrl}"`;
+
+      console.log('⬇️ Downloading video streams...');
+      exec(downloadCmd, { timeout: 180000 }, (dlErr, dlStdout, dlStderr) => {
         if (dlErr) {
           console.error('yt-dlp download error:', dlStderr || dlErr.message);
           return reject(new Error(`Failed to download YouTube video: ${dlStderr || dlErr.message}`));
         }
 
-        const lines = dlStdout.trim().split('\n');
-        const downloadedPath = lines[lines.length - 1]?.trim();
-        const filename = path.basename(downloadedPath);
+        const filename = `${videoId}.mp4`;
+        console.log('✅ Video downloaded & muxed successfully:', filename);
 
-        console.log('✅ Video downloaded successfully:', filename);
         resolve({
           filename,
           videoUrl: `/api/video/file/${filename}`,
@@ -58,7 +79,9 @@ export function downloadYouTubeVideo(url) {
  * Streams an MP4 video file with standard HTTP Range support
  */
 export function streamVideoFile(req, res, filename) {
-  const filePath = path.join(VIDEOS_DIR, filename);
+  // Sanitize filename
+  const safeFilename = path.basename(filename);
+  const filePath = path.join(VIDEOS_DIR, safeFilename);
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: 'Video file not found' });
