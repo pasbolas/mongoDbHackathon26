@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header.jsx';
+import Sidebar from './components/Sidebar.jsx';
 import LiveRoutineView from './components/LiveRoutineView.jsx';
 import ScenariosView from './components/ScenariosView.jsx';
 import LongitudinalDashboard from './components/LongitudinalDashboard.jsx';
@@ -149,7 +149,6 @@ export default function App() {
   const handleRunScenario = async (scenarioId) => {
     setIsRunningScenario(true);
     speechService.stop();
-    // Switch to live routine tab so the user can watch the scenario unfold
     setActiveTab('live');
     try {
       await fetch('/api/scenarios/run', {
@@ -165,10 +164,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#000000] text-[#f5f5f7] flex flex-col md:flex-row font-sans antialiased selection:bg-[#333336]">
       
-      {/* Tab Navigation Header */}
-      <Header
+      {/* Vertical Left Taskbar */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         dbStatus={dbStatus}
@@ -177,52 +176,48 @@ export default function App() {
         onReset={handleReset}
       />
 
-      {/* Main Tab Content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
-        
-        {activeTab === 'live' && (
-          <LiveRoutineView
-            state={state}
-            onAction={handleAction}
-            onIdle={handleIdle}
-            isPerformingAction={isPerformingAction || isRunningScenario}
-            soundEnabled={soundEnabled}
-          />
-        )}
+      {/* Main Content Area (Apple Proportions: Generous Padding, Less Columns) */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000]">
+        <main className="flex-1 px-6 sm:px-12 py-10 sm:py-14 max-w-4xl w-full mx-auto">
+          
+          {activeTab === 'live' && (
+            <LiveRoutineView
+              state={state}
+              onAction={handleAction}
+              onIdle={handleIdle}
+              isPerformingAction={isPerformingAction || isRunningScenario}
+              soundEnabled={soundEnabled}
+            />
+          )}
 
-        {activeTab === 'scenarios' && (
-          <ScenariosView
-            onRunScenario={handleRunScenario}
-            isRunningScenario={isRunningScenario}
-          />
-        )}
+          {activeTab === 'scenarios' && (
+            <ScenariosView
+              onRunScenario={handleRunScenario}
+              isRunningScenario={isRunningScenario}
+            />
+          )}
 
-        {activeTab === 'progress' && (
-          <LongitudinalDashboard
-            dashboardData={dashboardData}
-          />
-        )}
+          {activeTab === 'progress' && (
+            <LongitudinalDashboard
+              dashboardData={dashboardData}
+            />
+          )}
 
-        {activeTab === 'database' && (
-          <DatabaseView
-            dbStatus={dbStatus}
-            onRefreshDbStatus={fetchDbStatus}
-          />
-        )}
+          {activeTab === 'database' && (
+            <DatabaseView
+              dbStatus={dbStatus}
+              onRefreshDbStatus={fetchDbStatus}
+            />
+          )}
 
-      </main>
+        </main>
 
-      {/* Minimal Clean Footer */}
-      <footer className="border-t border-neutral-800 bg-neutral-950 py-6 text-neutral-400 text-sm px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div>
-            <strong className="text-neutral-300">Adaptive Memory Guardian</strong> — Vanishing AI assistance for dementia.
-          </div>
-          <div className="text-xs text-neutral-400">
-            Powered by MongoDB Atlas Vector Search
-          </div>
-        </div>
-      </footer>
+        {/* Minimal Footer */}
+        <footer className="border-t border-[#1c1c1f] py-6 px-6 sm:px-12 text-xs text-[#86868b] max-w-4xl w-full mx-auto flex items-center justify-between">
+          <span>Adaptive Memory Guardian</span>
+          <span>Powered by MongoDB Atlas Vector Search</span>
+        </footer>
+      </div>
 
     </div>
   );

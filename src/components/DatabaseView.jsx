@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, RefreshCw, Key, Server } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
   const [activeCollection, setActiveCollection] = useState('situations_vector');
@@ -11,10 +11,10 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
 
   const collections = [
     { id: 'situations_vector', label: 'situations_vector', role: 'Vector Search Index' },
-    { id: 'events', label: 'events', role: 'Time-Series Behavioral Stream' },
-    { id: 'routines', label: 'routines', role: 'Personal Baseline & Cue Levels' },
-    { id: 'longitudinal_metrics', label: 'longitudinal_metrics', role: 'Weekly Progress History' },
-    { id: 'prompt_history', label: 'prompt_history', role: 'Logged Interventions' }
+    { id: 'events', label: 'events', role: 'Time-Series Stream' },
+    { id: 'routines', label: 'routines', role: 'Routine Baseline' },
+    { id: 'longitudinal_metrics', label: 'longitudinal_metrics', role: 'Weekly Progress' },
+    { id: 'prompt_history', label: 'prompt_history', role: 'Logged Cues' }
   ];
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
       });
       const data = await res.json();
       if (data.result?.success) {
-        setMessage({ type: 'success', text: 'Connected to MongoDB Atlas!' });
+        setMessage({ type: 'success', text: 'Connected to MongoDB Atlas cluster!' });
         if (onRefreshDbStatus) onRefreshDbStatus();
         fetchDocuments(activeCollection);
       } else {
@@ -61,73 +61,81 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-3xl">
 
-      {/* Intro & Connection */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 space-y-4">
+      {/* Intro Header */}
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight text-[#f5f5f7]">
+          MongoDB Atlas Storage
+        </h2>
+        <p className="text-base text-[#86868b] mt-1.5 leading-relaxed">
+          Active storage engine: <span className="text-[#f5f5f7] font-medium">{dbStatus?.mode || 'Local Hybrid Engine'}</span>.
+        </p>
+      </div>
+
+      {/* Connection Form Card */}
+      <div className="rounded-3xl border border-[#242427] bg-[#141416] p-7 sm:p-8 space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-white">
-            MongoDB Atlas Data & Vector Search
-          </h2>
-          <p className="text-base text-neutral-400 mt-1">
-            Status: <span className="text-white font-medium">{dbStatus?.mode || 'Local Store'}</span>
+          <h3 className="text-sm font-semibold text-[#f5f5f7]">
+            Connect to MongoDB Atlas
+          </h3>
+          <p className="text-xs text-[#86868b] mt-0.5">
+            Optional: Enter your cluster connection string to sync live documents and vector embeddings.
           </p>
         </div>
 
-        {/* Connection Form */}
-        <form onSubmit={handleConnect} className="flex flex-col sm:flex-row gap-3 pt-2">
+        <form onSubmit={handleConnect} className="flex flex-col sm:flex-row gap-2.5">
           <input
             type="password"
-            placeholder="Optional: mongodb+srv://<username>:<password>@cluster.mongodb.net/..."
+            placeholder="mongodb+srv://<user>:<password>@cluster.mongodb.net/..."
             value={customUri}
             onChange={e => setCustomUri(e.target.value)}
-            className="flex-1 bg-neutral-950 border border-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-neutral-500"
+            className="flex-1 bg-[#101012] border border-[#2c2c30] rounded-xl px-4 py-2.5 text-xs text-[#f5f5f7] placeholder-[#6e6e73] font-mono focus:outline-none focus:border-[#48484e]"
           />
           <button
             type="submit"
             disabled={connecting || !customUri}
-            className="px-5 py-2.5 rounded-lg bg-white text-neutral-900 hover:bg-neutral-200 text-sm font-semibold transition-colors disabled:opacity-40"
+            className="px-5 py-2.5 rounded-xl bg-white text-black hover:bg-[#e5e5ea] text-xs font-semibold transition-all disabled:opacity-40"
           >
-            {connecting ? 'Connecting...' : 'Connect Atlas'}
+            {connecting ? 'Connecting...' : 'Connect'}
           </button>
         </form>
 
         {message && (
-          <div className={`text-sm p-3 rounded-lg ${
-            message.type === 'success' ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'
+          <div className={`text-xs p-3 rounded-xl ${
+            message.type === 'success' ? 'bg-[#0f241a] text-emerald-300' : 'bg-[#291417] text-rose-300'
           }`}>
             {message.text}
           </div>
         )}
       </div>
 
-      {/* Collection Viewer */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 space-y-4">
+      {/* Collection Viewer Card */}
+      <div className="rounded-3xl border border-[#242427] bg-[#141416] p-7 sm:p-8 space-y-5">
         
-        {/* Collection Selector Tabs */}
-        <div className="flex space-x-2 border-b border-neutral-800 pb-4 overflow-x-auto">
+        {/* Collection Selector Pills */}
+        <div className="flex flex-wrap gap-2 pb-2 border-b border-[#1f1f23]">
           {collections.map(col => (
             <button
               key={col.id}
               onClick={() => setActiveCollection(col.id)}
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 activeCollection === col.id
-                  ? 'bg-neutral-800 text-white font-semibold'
-                  : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-850'
+                  ? 'bg-white text-black font-semibold'
+                  : 'bg-[#1a1a1c] text-[#86868b] hover:text-[#f5f5f7] hover:bg-[#222225]'
               }`}
             >
-              <span className="font-mono">{col.id}</span>
-              <span className="text-xs text-neutral-500">({col.role})</span>
+              <span>{col.label}</span>
             </button>
           ))}
         </div>
 
         {/* Action bar */}
-        <div className="flex items-center justify-between text-sm text-neutral-400">
-          <span>{documents.length} documents in <strong className="text-white font-mono">{activeCollection}</strong></span>
+        <div className="flex items-center justify-between text-xs text-[#86868b]">
+          <span>{documents.length} documents in <strong className="text-[#f5f5f7] font-mono">{activeCollection}</strong></span>
           <button
             onClick={() => fetchDocuments(activeCollection)}
-            className="flex items-center gap-1.5 text-neutral-300 hover:text-white"
+            className="flex items-center gap-1.5 text-[#86868b] hover:text-[#f5f5f7] transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -135,17 +143,17 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
         </div>
 
         {/* JSON Viewer */}
-        <div className="bg-neutral-950 rounded-lg p-4 border border-neutral-850 overflow-x-auto max-h-[500px] overflow-y-auto">
+        <div className="bg-[#0c0c0e] rounded-2xl p-5 border border-[#1c1c1f] overflow-x-auto max-h-[500px] overflow-y-auto">
           {loading ? (
-            <div className="py-12 text-center text-neutral-500 text-sm">
+            <div className="py-12 text-center text-[#6e6e73] text-xs">
               Loading collection data...
             </div>
           ) : documents.length === 0 ? (
-            <div className="py-12 text-center text-neutral-500 text-sm">
+            <div className="py-12 text-center text-[#6e6e73] text-xs">
               No documents found.
             </div>
           ) : (
-            <pre className="text-xs text-neutral-300 font-mono leading-relaxed">
+            <pre className="text-xs text-[#d1d1d6] font-mono leading-relaxed">
               {JSON.stringify(documents, null, 2)}
             </pre>
           )}

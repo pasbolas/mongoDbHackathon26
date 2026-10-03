@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Volume2, CheckCircle2, Clock, Droplet, Flame, Coffee, Package, Milk } from 'lucide-react';
 import { speechService } from '../utils/speech.js';
 
 export default function LiveRoutineView({ 
@@ -16,39 +16,42 @@ export default function LiveRoutineView({
   const sim = state.simulation || {};
 
   const steps = [
-    { key: 'fill_kettle', num: 1, title: 'Fill Kettle', targetAction: 'kettle_fill' },
-    { key: 'boil_water', num: 2, title: 'Boil Water', targetAction: 'kettle_boil' },
-    { key: 'get_mug', num: 3, title: 'Get Mug', targetAction: 'take_mug' },
-    { key: 'get_teabag', num: 4, title: 'Get Tea Bag', targetAction: 'take_teabag' },
-    { key: 'pour_water', num: 5, title: 'Pour Water', targetAction: 'pour_water' },
-    { key: 'add_milk', num: 6, title: 'Add Milk', targetAction: 'add_milk' }
+    { key: 'fill_kettle', num: 1, title: 'Fill Kettle' },
+    { key: 'boil_water', num: 2, title: 'Boil Water' },
+    { key: 'get_mug', num: 3, title: 'Get Mug' },
+    { key: 'get_teabag', num: 4, title: 'Get Tea Bag' },
+    { key: 'pour_water', num: 5, title: 'Pour Water' },
+    { key: 'add_milk', num: 6, title: 'Add Milk' }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-3xl">
 
-      {/* 1. Main Status & Voice Prompt Banner */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+      {/* 1. Hero Status Card (Apple-Style Big Editorial Typography) */}
+      <div className="rounded-3xl border border-[#242427] bg-[#141416] p-8 sm:p-10 transition-all">
         {isFinished ? (
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-emerald-400 font-semibold text-xl">
-              <CheckCircle2 className="w-6 h-6" />
-              <span>Routine Finished</span>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2 text-emerald-400 text-sm font-semibold uppercase tracking-wider">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Routine Complete</span>
             </div>
-            <p className="text-base text-neutral-300">
-              John completed the entire tea making sequence.
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f5f5f7]">
+              Tea routine finished.
+            </h2>
+            <p className="text-base text-[#86868b] leading-relaxed">
+              John completed the full activity. Independent completion outcome recorded to MongoDB Atlas to lower future cue levels.
             </p>
           </div>
         ) : isIntervening ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded border border-amber-400/20">
-                AI Assistance: Level {state.activePrompt.level} Prompt
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                Prompt Level {state.activePrompt.level} of 3
               </span>
               {soundEnabled && (
                 <button
                   onClick={() => speechService.speak(state.activePrompt.text)}
-                  className="flex items-center space-x-1.5 text-xs text-neutral-300 hover:text-white px-2.5 py-1 rounded border border-neutral-700 bg-neutral-800"
+                  className="flex items-center space-x-1.5 text-xs text-[#a1a1a6] hover:text-[#f5f5f7] px-3 py-1 rounded-full border border-[#2c2c30] bg-[#1c1c1e] transition-colors"
                 >
                   <Volume2 className="w-3.5 h-3.5" />
                   <span>Replay Voice</span>
@@ -56,210 +59,225 @@ export default function LiveRoutineView({
               )}
             </div>
 
-            {/* Large Spoken Prompt */}
-            <div className="text-2xl font-semibold text-white">
+            <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
               "{state.activePrompt.text}"
             </div>
 
-            <p className="text-sm text-neutral-400">
-              Matched situation in MongoDB: {state.activePrompt.vectorMatch?.title || 'Hesitation looking for item'}.
+            <p className="text-sm text-[#86868b]">
+              Vector Search matched: {state.activePrompt.vectorMatch?.title || 'Hesitation looking for mug'}.
             </p>
           </div>
         ) : (
-          <div className="space-y-1.5">
-            <div className="flex items-center space-x-2 text-emerald-400 font-semibold text-lg">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <span>AI is Silent</span>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2 text-emerald-400 text-sm font-semibold uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Silence is the Feature</span>
             </div>
-            <p className="text-xl font-medium text-white">
-              John is making tea normally. No assistance needed.
-            </p>
-            <p className="text-sm text-neutral-400">
-              The system intentionally does nothing to promote independent memory.
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f5f5f7]">
+              John is on track. AI is quiet.
+            </h2>
+            <p className="text-base text-[#86868b] leading-relaxed">
+              When an individual completes routine steps naturally, the assistant intentionally refrains from intervening to preserve spontaneous memory.
             </p>
           </div>
         )}
       </div>
 
-      {/* 2. Step Sequence Checklist */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-base font-semibold text-neutral-300 mb-4">
-          Routine Sequence
-        </h2>
-        
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          {steps.map((step, idx) => {
+      {/* 2. Step Stepper (Clean Linear Flow) */}
+      <div className="rounded-2xl border border-[#242427] bg-[#141416] p-6">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-medium uppercase tracking-wider text-[#86868b]">
+            Step Progress
+          </span>
+          <span className="text-xs font-medium text-[#f5f5f7]">
+            {isFinished ? '6 of 6 Completed' : `Step ${Math.min(6, currentStepIndex + 1)} of 6: ${currentStep?.title || ''}`}
+          </span>
+        </div>
+
+        {/* Clean pill stepper */}
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+          {steps.map((s, idx) => {
             const isCompleted = idx < currentStepIndex;
             const isCurrent = idx === currentStepIndex && !isFinished;
 
-            let cardStyle = 'border-neutral-800 bg-neutral-950 text-neutral-500';
+            let pillClass = 'bg-[#101012] border-[#1c1c1f] text-[#6e6e73]';
             if (isCurrent) {
-              cardStyle = 'border-neutral-600 bg-neutral-800 text-white font-semibold';
+              pillClass = 'bg-white text-black font-semibold border-white shadow-sm';
             } else if (isCompleted) {
-              cardStyle = 'border-neutral-800 bg-neutral-950 text-neutral-300';
+              pillClass = 'bg-[#1c1c1f] border-[#2c2c30] text-[#f5f5f7]';
             }
 
             return (
               <div
-                key={step.key}
-                className={`p-3.5 rounded-lg border flex flex-col justify-between ${cardStyle}`}
+                key={s.key}
+                className={`py-2 px-3 rounded-xl border text-center transition-all ${pillClass}`}
               >
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span>Step {step.num}</span>
-                  {isCompleted && <span className="text-emerald-400 font-bold">✓ Done</span>}
-                  {isCurrent && <span className="text-amber-400">Now</span>}
-                </div>
-                <div className="text-sm font-medium">{step.title}</div>
+                <div className="text-[10px] font-medium opacity-70">0{s.num}</div>
+                <div className="text-xs truncate font-medium">{s.title}</div>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* 3. Action Simulator */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 space-y-6">
-        <div>
-          <h2 className="text-base font-semibold text-neutral-200">
-            Simulate Perceived Actions
-          </h2>
-          <p className="text-sm text-neutral-400 mt-0.5">
-            Click an action below to simulate what the camera or sensors perceive.
-          </p>
+      {/* 3. Action Workstations (Structured in Clean Vertical Sections - Less Columns) */}
+      <div className="space-y-4">
+        <div className="text-xs font-medium uppercase tracking-wider text-[#86868b] px-1">
+          Simulated Physical Perceptor
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Station 1: Kettle */}
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-neutral-400">
-              1. Water & Kettle
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => onAction('kettle_fill')}
-                disabled={isPerformingAction || isFinished}
-                className="w-full py-2.5 px-4 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-              >
-                Fill Kettle at Sink
-              </button>
-              <button
-                onClick={() => onAction('kettle_boil')}
-                disabled={isPerformingAction || isFinished}
-                className="w-full py-2.5 px-4 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-              >
-                Turn On Kettle (Boil)
-              </button>
-            </div>
-            <div className="text-xs text-neutral-500">
-              Status: {sim.kettle?.boiled ? 'Water Boiled' : sim.kettle?.filled ? 'Filled' : 'Empty'}
-            </div>
+        {/* Section A: Preparation Actions */}
+        <div className="rounded-2xl border border-[#242427] bg-[#141416] p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[#f5f5f7]">
+              Primary Routine Actions
+            </h3>
+            <span className="text-xs text-[#86868b]">
+              Simulates camera perception
+            </span>
           </div>
 
-          {/* Station 2: Cupboard & Mug */}
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-neutral-400">
-              2. Cupboard & Mug
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => onAction('cupboard_open')}
-                  disabled={isPerformingAction || isFinished}
-                  className="py-2.5 px-3 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-                >
-                  Open Cupboard
-                </button>
-                <button
-                  onClick={() => onAction('cupboard_close')}
-                  disabled={isPerformingAction || isFinished}
-                  className="py-2.5 px-3 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-                >
-                  Close Cupboard
-                </button>
-              </div>
-              <button
-                onClick={() => onAction('take_mug')}
-                disabled={isPerformingAction || isFinished}
-                className="w-full py-2.5 px-4 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-              >
-                Retrieve Blue Mug
-              </button>
-            </div>
-            <div className="text-xs text-neutral-500">
-              Status: {sim.cupboard?.open ? 'Cupboard Open' : 'Cupboard Closed'}
-            </div>
-          </div>
-
-          {/* Station 3: Tea & Milk */}
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-neutral-400">
-              3. Tea & Milk
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => onAction('take_teabag')}
-                disabled={isPerformingAction || isFinished}
-                className="w-full py-2.5 px-4 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-              >
-                Take Tea Bag
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => onAction('pour_water')}
-                  disabled={isPerformingAction || isFinished}
-                  className="py-2.5 px-3 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-                >
-                  Pour Water
-                </button>
-                <button
-                  onClick={() => onAction('add_milk')}
-                  disabled={isPerformingAction || isFinished}
-                  className="py-2.5 px-3 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-white border border-neutral-700 disabled:opacity-40 transition-colors"
-                >
-                  Add Milk
-                </button>
-              </div>
-            </div>
-            <div className="text-xs text-neutral-500">
-              Status: {sim.mug?.hasMilk ? 'Milk added' : sim.mug?.hasWater ? 'Water poured' : sim.mug?.hasTeabag ? 'Teabag ready' : 'Empty'}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Hesitation trigger */}
-        <div className="pt-4 border-t border-neutral-800 flex items-center justify-between">
-          <div className="text-sm text-neutral-400 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-neutral-500" />
-            <span>Simulate confusion hesitation:</span>
-            {state.idleSeconds > 0 && (
-              <span className="font-mono text-amber-400 font-semibold">
-                +{state.idleSeconds}s idle
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => onAction('kettle_fill')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Droplet className="w-4 h-4 text-cyan-400" />
+                <span>Fill Kettle</span>
               </span>
-            )}
+              <span className="text-xs text-[#6e6e73]">
+                {sim.kettle?.filled ? 'Filled' : 'Empty'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('kettle_boil')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-amber-400" />
+                <span>Turn On Kettle</span>
+              </span>
+              <span className="text-xs text-[#6e6e73]">
+                {sim.kettle?.boiled ? 'Boiled' : 'Off'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('take_mug')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Coffee className="w-4 h-4 text-blue-400" />
+                <span>Retrieve Blue Mug</span>
+              </span>
+              <span className="text-xs text-[#6e6e73]">
+                {sim.mug?.onCounter ? 'On Counter' : 'In Cupboard'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('take_teabag')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-amber-400" />
+                <span>Take Tea Bag</span>
+              </span>
+              <span className="text-xs text-[#6e6e73]">
+                {sim.mug?.hasTeabag ? 'Inside Mug' : 'Pantry'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('pour_water')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Droplet className="w-4 h-4 text-cyan-400" />
+                <span>Pour Hot Water</span>
+              </span>
+              <span className="text-xs text-[#6e6e73]">
+                {sim.mug?.hasWater ? 'Poured' : 'Empty'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => onAction('add_milk')}
+              disabled={isPerformingAction || isFinished}
+              className="py-3 px-4 rounded-xl text-sm font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#f5f5f7] border border-[#2c2c30] transition-all flex items-center justify-between disabled:opacity-40"
+            >
+              <span className="flex items-center gap-2">
+                <Milk className="w-4 h-4 text-emerald-400" />
+                <span>Add Splash of Milk</span>
+              </span>
+              <span className="text-xs text-[#6e6e73]">
+                {sim.mug?.hasMilk ? 'Added' : 'Fridge'}
+              </span>
+            </button>
           </div>
-          <button
-            onClick={() => onIdle(15)}
-            disabled={isFinished}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-neutral-800 hover:bg-neutral-750 text-amber-300 border border-neutral-700 disabled:opacity-40 transition-colors"
-          >
-            +15 Seconds Idle
-          </button>
+        </div>
+
+        {/* Section B: Environment Interaction & Hesitation Simulation */}
+        <div className="rounded-2xl border border-[#242427] bg-[#141416] p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[#f5f5f7]">
+              Environmental Actions & Hesitation
+            </h3>
+            <span className="text-xs text-[#86868b]">
+              Test edge cases & loop detection
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              onClick={() => onAction('cupboard_open')}
+              disabled={isPerformingAction || isFinished}
+              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#a1a1a6] hover:text-[#f5f5f7] border border-[#2c2c30] transition-colors disabled:opacity-40"
+            >
+              Open Cupboard
+            </button>
+            <button
+              onClick={() => onAction('cupboard_close')}
+              disabled={isPerformingAction || isFinished}
+              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-[#1c1c1e] hover:bg-[#252528] text-[#a1a1a6] hover:text-[#f5f5f7] border border-[#2c2c30] transition-colors disabled:opacity-40"
+            >
+              Close Cupboard
+            </button>
+            <button
+              onClick={() => onIdle(15)}
+              disabled={isFinished}
+              className="py-2.5 px-3 rounded-xl text-xs font-medium bg-[#1c1c1e] hover:bg-[#252528] text-amber-300 border border-[#2c2c30] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Simulate 15s Idle</span>
+            </button>
+          </div>
         </div>
 
       </div>
 
-      {/* 4. Simple Perception Log */}
+      {/* 4. Streamlined Perceived Events Log */}
       {state.actionHistory && state.actionHistory.length > 0 && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-          <h3 className="text-sm font-medium text-neutral-400 mb-3">
-            Recent Perceived Events
-          </h3>
-          <div className="space-y-2">
+        <div className="rounded-2xl border border-[#242427] bg-[#141416] p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-medium uppercase tracking-wider text-[#86868b]">
+              Event Stream (MongoDB `events`)
+            </h3>
+            <span className="text-xs text-[#6e6e73]">Time-Series</span>
+          </div>
+
+          <div className="divide-y divide-[#1f1f23]">
             {state.actionHistory.slice(-4).reverse().map((act, i) => (
-              <div key={i} className="flex items-center justify-between text-sm py-1.5 px-3 rounded bg-neutral-950 border border-neutral-850">
-                <span className="font-mono text-neutral-200">{act.action}</span>
-                <span className="text-xs text-neutral-500">
+              <div key={i} className="py-2 flex items-center justify-between text-xs">
+                <span className="font-mono text-[#f5f5f7]">{act.action}</span>
+                <span className="text-[#6e6e73]">
                   {new Date(act.timestamp).toLocaleTimeString()}
                 </span>
               </div>
