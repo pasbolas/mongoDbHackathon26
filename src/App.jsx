@@ -4,6 +4,7 @@ import LiveRoutineView from './components/LiveRoutineView.jsx';
 import ScenariosView from './components/ScenariosView.jsx';
 import LongitudinalDashboard from './components/LongitudinalDashboard.jsx';
 import DatabaseView from './components/DatabaseView.jsx';
+import VideoPerceptor from './components/VideoPerceptor.jsx';
 import { speechService } from './utils/speech.js';
 
 export default function App() {
@@ -180,6 +181,14 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 bg-[#fbfbfd]">
         <main className="flex-1 px-6 sm:px-12 py-10 sm:py-14 max-w-4xl w-full mx-auto">
           
+          {activeTab === 'video' && (
+            <VideoPerceptor
+              onAction={handleAction}
+              onIdle={handleIdle}
+              activeState={state}
+            />
+          )}
+
           {activeTab === 'live' && (
             <LiveRoutineView
               state={state}

@@ -25,6 +25,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
     "canvas-confetti": "^1.9.4",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",

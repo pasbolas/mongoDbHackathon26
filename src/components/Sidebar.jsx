@@ -1,5 +1,6 @@
 import React from 'react';
 import { 
+  Video,
   Activity, 
   PlayCircle, 
   BarChart2, 
@@ -19,6 +20,7 @@ export default function Sidebar({
   onReset 
 }) {
   const navItems = [
+    { id: 'video', label: 'Video Input', icon: Video, caption: 'YouTube & edge vision AI' },
     { id: 'live', label: 'Live Activity', icon: Activity, caption: 'Sarah packing bag' },
     { id: 'scenarios', label: 'Demo Executions', icon: PlayCircle, caption: '3-stage demo walkthrough' },
     { id: 'progress', label: 'Observable Metrics', icon: BarChart2, caption: 'Sessions 1, 2, 3 data' },

@@ -2,8 +2,26 @@ import express from 'express';
 import { anchorEngine, STEPS_DEFINITION } from '../engine/anchor.js';
 import { dbManager } from '../db.js';
 import { seedDatabase } from '../seed.js';
+import { downloadYouTubeVideo, streamVideoFile } from '../videoService.js';
 
 const router = express.Router();
+
+// Download YouTube video via yt-dlp
+router.post('/video/youtube', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'YouTube URL is required' });
+    const result = await downloadYouTubeVideo(url);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Stream video file
+router.get('/video/file/:filename', (req, res) => {
+  streamVideoFile(req, res, req.params.filename);
+});
 
 // SSE Real-time streaming
 router.get('/events/stream', (req, res) => {
