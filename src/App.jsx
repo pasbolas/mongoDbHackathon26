@@ -223,7 +223,7 @@ export default function App() {
 
         {/* Minimal Light Footer */}
         <footer className="border-t border-[#e5e5ea] py-6 px-6 sm:px-12 text-xs text-[#86868b] max-w-4xl w-full mx-auto flex items-center justify-between">
-          <span>Anchor — Privacy-First Adaptive Assistance</span>
+          <span>Anchor - Privacy-First Adaptive Assistance</span>
           <span>Powered by MongoDB Atlas Vector Search</span>
         </footer>
       </div>

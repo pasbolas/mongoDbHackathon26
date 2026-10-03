@@ -1,0 +1,2980 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blast Radius | Real-Time Agent Memory Governance and Provenance</title>
+<link rel="stylesheet" href="/static/vendor/vis-network.min.css">
+<style>
+  :root, [data-theme="dark"] {
+    --bg-app: #0c0d12;
+    --bg-sidebar: #12151e;
+    --bg-card: #181b26;
+    --bg-card-subtle: #1f2333;
+    --bg-card-hover: #262c3f;
+    --bg-input: #12151e;
+    
+    --border: #363d52;
+    --border-strong: #525d7c;
+    --border-accent: #00e5ff;
+    
+    --shadow-color: #000000;
+    --shadow-sm: 2px 2px 0px #000000;
+    --shadow-md: 4px 4px 0px #000000;
+    --shadow-lg: 6px 6px 0px #000000;
+    
+    --text-main: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #8b9bb4;
+    --text-invert: #000000;
+    
+    --accent: #00e5ff;
+    --accent-hover: #38bdf8;
+    --accent-tint: rgba(0, 229, 255, 0.16);
+    --accent-glow: 0 0 0px transparent;
+    
+    --green: #00e676;
+    --green-bg: rgba(0, 230, 118, 0.18);
+    --green-border: #00e676;
+    --green-text: #00e676;
+    --green-glow: 0 0 0px transparent;
+    
+    --red: #ff3366;
+    --red-bg: rgba(255, 51, 102, 0.18);
+    --red-border: #ff3366;
+    --red-text: #ff5277;
+    --red-glow: 0 0 0px transparent;
+    
+    --grey: #94a3b8;
+    --grey-bg: rgba(148, 163, 184, 0.18);
+    --grey-border: #94a3b8;
+    --grey-text: #cbd5e1;
+
+    --amber: #ff9100;
+    --amber-bg: rgba(255, 145, 0, 0.18);
+    --amber-border: #ff9100;
+    --amber-text: #ffab40;
+
+    --purple: #d500f9;
+    --purple-bg: rgba(213, 0, 249, 0.18);
+    --purple-border: #d500f9;
+    --purple-text: #e040fb;
+    
+    --btn-primary-bg: #00e5ff;
+    --btn-primary-text: #000000;
+    --btn-primary-border: #00e5ff;
+    
+    --canvas-grid: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
+    --hero-gradient: linear-gradient(135deg, rgba(0, 229, 255, 0.14) 0%, rgba(255, 51, 102, 0.12) 50%, rgba(0, 230, 118, 0.1) 100%);
+  }
+
+  [data-theme="light"] {
+    --bg-app: #f4f3ee;
+    --bg-sidebar: #ebe9e1;
+    --bg-card: #ffffff;
+    --bg-card-subtle: #f8f7f4;
+    --bg-card-hover: #fffde6;
+    --bg-input: #ffffff;
+    
+    --border: #000000;
+    --border-strong: #000000;
+    --border-accent: #000000;
+    
+    --shadow-color: #000000;
+    --shadow-sm: 2px 2px 0px #000000;
+    --shadow-md: 4px 4px 0px #000000;
+    --shadow-lg: 6px 6px 0px #000000;
+    
+    --text-main: #000000;
+    --text-secondary: #262626;
+    --text-muted: #525252;
+    --text-invert: #ffffff;
+    
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-tint: #dbeafe;
+    --accent-glow: 0 0 0px transparent;
+    
+    --green: #00c853;
+    --green-bg: #b9f6ca;
+    --green-border: #000000;
+    --green-text: #004d40;
+    --green-glow: 0 0 0px transparent;
+    
+    --red: #ff3366;
+    --red-bg: #ffcdd2;
+    --red-border: #000000;
+    --red-text: #b71c1c;
+    --red-glow: 0 0 0px transparent;
+    
+    --grey: #757575;
+    --grey-bg: #e0e0e0;
+    --grey-border: #000000;
+    --grey-text: #212121;
+
+    --amber: #ff9100;
+    --amber-bg: #ffe0b2;
+    --amber-border: #000000;
+    --amber-text: #e65100;
+
+    --purple: #aa00ff;
+    --purple-bg: #f3e5f5;
+    --purple-border: #000000;
+    --purple-text: #4a148c;
+    
+    --btn-primary-bg: #ffe600;
+    --btn-primary-text: #000000;
+    --btn-primary-border: #000000;
+
+    --canvas-grid: radial-gradient(circle, rgba(0, 0, 0, 0.12) 1.5px, transparent 1.5px);
+    --hero-gradient: linear-gradient(135deg, rgba(255, 230, 0, 0.25) 0%, rgba(255, 51, 102, 0.15) 50%, rgba(0, 230, 118, 0.15) 100%);
+  }
+
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+  body {
+    margin: 0;
+    background: var(--bg-app);
+    color: var(--text-main);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.01em;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  code, pre, .mono {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Left vertical sidebar */
+  .sidebar {
+    width: 270px;
+    background: var(--bg-sidebar);
+    border-right: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    z-index: 10;
+  }
+
+  .brand {
+    padding: 22px 20px 18px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-main);
+    background: var(--accent-tint);
+    border: 2px solid var(--border);
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .brand-badge .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 2px var(--shadow-color);
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+
+  .brand .tagline {
+    margin: 5px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .tabs-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 14px;
+    flex: 1;
+  }
+
+  .nav-header {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 6px 8px 4px;
+  }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.1s ease;
+  }
+
+  .tab-btn:hover {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-color: var(--border);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .tab-btn.active {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--border);
+    font-weight: 800;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .tab-btn .tab-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+  }
+
+  .tab-btn .badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+  }
+
+  .tab-btn.active .badge {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+  }
+
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 2px solid var(--border);
+    background: var(--bg-sidebar);
+  }
+
+  .legend-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+  }
+
+  .conn-box {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 2px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .conn-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .conn-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 1.5px solid var(--shadow-color);
+    display: inline-block;
+  }
+
+  .conn-dot.bad {
+    background: var(--red);
+  }
+
+  .conn { font-weight: 700; color: var(--text-secondary); }
+  .conn.bad { color: var(--red-text); }
+
+  .theme-toggle-btn {
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    transition: all 0.1s ease;
+  }
+
+  .theme-toggle-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .theme-toggle-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+  }
+
+  /* Main content area */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  /* Executive top header */
+  .top-header {
+    padding: 18px 36px;
+    background: var(--bg-card);
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .header-tagline {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .header-tagline h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .header-tagline p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .header-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .env-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .env-badge.atlas {
+    background: var(--green-bg);
+    border-color: var(--border);
+    color: var(--text-main);
+  }
+
+  .env-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 1px solid var(--shadow-color);
+  }
+
+  .reseed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    transition: all 0.1s ease;
+  }
+
+  .reseed-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+    background: var(--bg-card-hover);
+  }
+
+  .reseed-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+  }
+
+  .tab-pane {
+    padding: 28px 36px 48px;
+    max-width: 1200px;
+    width: 100%;
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Neubrutalist Card Sections */
+  section {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .section-header-left h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+
+  .section-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  /* Form controls */
+  input, select, textarea, button {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.1s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 4px 4px 0px var(--accent);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.45;
+  }
+
+  /* Neubrutalist Button Hierarchy */
+  button {
+    cursor: pointer;
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 5px;
+    padding: 9px 16px;
+    font-weight: 800;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--bg-card-hover);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  button:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+  }
+
+  button.primary {
+    background: var(--btn-primary-bg);
+    border-color: var(--btn-primary-border);
+    color: var(--btn-primary-text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  button.primary:hover:not(:disabled) {
+    background: var(--btn-primary-bg);
+    opacity: 0.92;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  button.danger {
+    background: var(--red);
+    border-color: var(--border);
+    color: #ffffff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  button.danger:hover:not(:disabled) {
+    background: #e11d48;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: var(--shadow-sm) !important;
+  }
+
+  /* Quick Demo Helper Pills */
+  .quick-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .quick-chip-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .quick-chip {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    transition: all 0.1s ease;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .quick-chip:hover {
+    background: var(--accent-tint);
+    border-color: var(--border);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  /* Segmented control for Tree/List toggle */
+  .segmented-control {
+    display: inline-flex;
+    background: var(--bg-card-subtle);
+    padding: 3px;
+    border-radius: 5px;
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .segmented-control button {
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    box-shadow: none;
+    text-transform: none;
+  }
+
+  .segmented-control button.on {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--border);
+    font-weight: 800;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .row > input {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .hint {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 6px 0 0;
+  }
+
+  /* Neubrutalist Status Chips */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    white-space: nowrap;
+  }
+
+  .chip.active { background: var(--green-bg); color: var(--green-text); }
+  .chip.red { background: var(--red-bg); color: var(--red-text); }
+  .chip.quarantined { background: var(--grey-bg); color: var(--grey-text); }
+
+  /* Search results */
+  .results {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  .results li {
+    margin-bottom: 12px;
+  }
+
+  .result {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 14px 18px;
+    background: var(--bg-card-subtle);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.1s ease;
+    text-transform: none;
+  }
+
+  .result:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .result.sel {
+    border-color: var(--border);
+    background: var(--accent-tint);
+    box-shadow: 4px 4px 0px var(--accent);
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .result b {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text-main);
+  }
+
+  .snip {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    display: block;
+    line-height: 1.45;
+  }
+
+  /* Blast radius presentation */
+  .impact-hero {
+    background: var(--hero-gradient);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .impact-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-main);
+    background: var(--red-bg);
+    border: 2px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    margin-bottom: 10px;
+  }
+
+  .impact-tag.quarantined {
+    background: var(--grey-bg);
+    color: var(--grey-text);
+  }
+
+  .bigline {
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    line-height: 1.35;
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  /* Neubrutalist KPI Stat Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .kpi-val {
+    font-size: 26px;
+    font-weight: 900;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--text-main);
+    letter-spacing: -0.03em;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* People boxes */
+  .people {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0 20px;
+  }
+
+  .people div.box {
+    border: 2px solid var(--border);
+    background: var(--bg-card-subtle);
+    border-radius: 5px;
+    padding: 16px 18px;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .people h3 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .people .names {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .user-badge.applied {
+    background: var(--green-bg);
+    color: var(--green-text);
+  }
+
+  .user-badge.second-hand {
+    background: var(--amber-bg);
+    color: var(--amber-text);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0;
+    align-items: center;
+  }
+
+  .toolbar .sp { flex: 1; }
+
+  /* Tree Graph container */
+  .tree-wrapper {
+    position: relative;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card-subtle);
+    background-image: var(--canvas-grid);
+    background-size: 24px 24px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  #tree {
+    height: 520px;
+    width: 100%;
+  }
+
+  .graph-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 5;
+  }
+
+  .graph-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: 4px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .graph-btn:hover {
+    background: var(--bg-card-hover);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .list-view {
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    background: var(--bg-card-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .li:last-child { border-bottom: 0; }
+  .li .meta { color: var(--text-muted); font-size: 13px; font-weight: 600; }
+
+  /* Detailed Inspector Drawer */
+  .detail {
+    margin-top: 18px;
+    padding: 16px 20px;
+    border: 2px solid var(--border);
+    border-left: 6px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card-subtle);
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: var(--shadow-sm);
+    animation: fadeIn 0.15s ease;
+  }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .detail-quote {
+    padding: 10px 14px;
+    border-radius: 4px;
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    margin: 8px 0;
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  /* Slack Notification card */
+  .panel {
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-top: 18px;
+    background: var(--bg-card-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .slack-card {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 10px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .slack-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .slack-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #000000;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    border: 2px solid var(--border);
+  }
+
+  .slack-bot-name {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text-main);
+  }
+
+  .slack-app-badge {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .slack-body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .slack-box {
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 2px solid var(--border);
+    border-left: 5px solid;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .slack-box.bad {
+    background: var(--red-bg);
+    border-left-color: var(--red);
+    color: var(--red-text);
+  }
+
+  .slack-box.good {
+    background: var(--green-bg);
+    border-left-color: var(--green);
+    color: var(--green-text);
+  }
+
+  .badge {
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .badge.sent { background: var(--green-bg); color: var(--green-text); }
+  .badge.preview { background: var(--grey-bg); color: var(--grey-text); }
+
+  /* AI Agent Real-Time Status & Console */
+  .agent-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+    flex-wrap: wrap;
+  }
+
+  .agent-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .agent-pulse {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 1.5px solid var(--shadow-color);
+    animation: pulse 1.8s infinite;
+  }
+
+  .model-pill {
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    font-weight: 800;
+    font-size: 11px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .config-agent-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .config-agent-btn:hover {
+    background: var(--bg-card-hover);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  /* Live Agent Console */
+  .agent-live-console {
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+    animation: fadeIn 0.15s ease;
+  }
+
+  .console-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  .console-logs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-secondary);
+  }
+
+  .console-log-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .console-log-item .time {
+    color: var(--text-muted);
+  }
+
+  .console-log-item .msg {
+    color: var(--text-main);
+  }
+
+  /* Ask Assistant cards */
+  .answer {
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-top: 18px;
+    background: var(--bg-card-subtle);
+    box-shadow: var(--shadow-md);
+  }
+
+  .answer .q {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .answer .a {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 10px 0 14px;
+    color: var(--text-main);
+    line-height: 1.5;
+    padding: 14px 16px;
+    background: var(--bg-input);
+    border-radius: 5px;
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .answer ul {
+    margin: 6px 0 14px;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* Trace inspector in answer */
+  .agent-trace-box {
+    margin-top: 12px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-input);
+    padding: 12px 14px;
+    font-size: 12px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+  }
+
+  .agent-trace-title {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .agent-trace-content {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px solid var(--border);
+    color: var(--text-secondary);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  /* Live Items grid */
+  .live-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .live-filter-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    color: var(--text-main);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .live-filter-btn.active {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+  }
+
+  .live {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tile {
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: default;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+    transition: all 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tile:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--shadow-color);
+  }
+
+  .tile.active { background: var(--green-bg); color: var(--green-text); }
+  .tile.red { background: var(--red-bg); color: var(--red-text); }
+  .tile.quarantined { background: var(--grey-bg); color: var(--grey-text); }
+
+  .empty {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Modal Backdrop & Card */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.1s ease;
+  }
+
+  .modal-backdrop[hidden] {
+    display: none !important;
+  }
+
+  .modal-card {
+    background: var(--bg-card);
+    border: 3px solid var(--border);
+    border-radius: 6px;
+    width: 90%;
+    max-width: 480px;
+    padding: 24px;
+    box-shadow: 8px 8px 0px var(--shadow-color);
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .modal-head h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text-main);
+  }
+
+  .form-group {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Knowledge Base Cards & Grid */
+  .kb-articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .kb-card {
+    background: var(--bg-card-subtle);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.1s ease;
+  }
+
+  .kb-card:hover {
+    border-color: var(--border);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--shadow-color);
+  }
+
+  .kb-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .kb-card-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin: 0 0 4px;
+    letter-spacing: -0.015em;
+  }
+
+  .kb-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+
+  .kb-cat-tag {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--accent-tint);
+    color: var(--text-main);
+    border: 2px solid var(--border);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+  }
+
+  .kb-card-content {
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 12px 14px;
+    max-height: 110px;
+    overflow-y: auto;
+  }
+
+  .kb-version-list {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .kb-version-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .kb-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 2px solid var(--border);
+  }
+
+  @media (max-width: 860px) {
+    .app-shell { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; border-right: 0; border-bottom: 2px solid var(--border); }
+    .tabs-nav { flex-direction: row; overflow-x: auto; }
+    .sidebar-footer { display: none; }
+    .tab-pane { padding: 20px 20px 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Left vertical tab sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge">
+        <span class="pulse-dot"></span>
+        <span>Atlas M0 Live</span>
+      </div>
+      <h1>
+        <span>⚡</span>
+        <span>Blast Radius</span>
+      </h1>
+      <div class="tagline">Agent Memory Governance and Impact Lineage</div>
+    </div>
+
+    <nav class="tabs-nav" aria-label="Workflows">
+      <div class="nav-header">Workflows</div>
+      <button class="tab-btn active" id="tabBlast" data-tab="blast" type="button">
+        <span class="tab-icon">⚡</span>
+        <span>Blast Radius</span>
+      </button>
+      <button class="tab-btn" id="tabKB" data-tab="kb" type="button">
+        <span class="tab-icon">📚</span>
+        <span>Knowledge Base</span>
+        <span class="badge" id="kbBadge">0</span>
+      </button>
+      <button class="tab-btn" id="tabAsk" data-tab="ask" type="button">
+        <span class="tab-icon">🤖</span>
+        <span>AI Agent Assistant</span>
+      </button>
+      <button class="tab-btn" id="tabLive" data-tab="live" type="button">
+        <span class="tab-icon">📜</span>
+        <span>Audit Logs</span>
+        <span class="badge" id="liveBadge">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="legend-title">Document Status</div>
+      <div class="legend-items" id="legend">
+        <div class="legend-item"><span class="chip active">active</span> Active and safe</div>
+        <div class="legend-item"><span class="chip red">blast</span> In blast radius</div>
+        <div class="legend-item"><span class="chip quarantined">grey</span> Quarantined</div>
+      </div>
+      <div class="conn-box">
+        <div class="conn-status">
+          <span class="conn-dot" id="connDot"></span>
+          <span class="conn" id="conn">connecting...</span>
+        </div>
+        <button class="theme-toggle-btn" id="themeToggle" type="button" title="Toggle theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right main workspace -->
+  <main class="main-content">
+    <!-- Top executive header bar -->
+    <div class="top-header">
+      <div class="header-tagline">
+        <h2>Blast Radius Console</h2>
+        <p>Trace tainted knowledge lineages, isolate poisoned memories, and notify affected engineers.</p>
+      </div>
+      <div class="header-badges">
+        <div class="env-badge atlas">
+          <span class="dot"></span>
+          <span>Atlas TestingCluster</span>
+        </div>
+        <div class="env-badge">
+          <span>Engine: $graphLookup</span>
+        </div>
+        <button class="reseed-btn" id="reseedBtn" type="button" title="Reset and reseed demo data">
+          <span>↺</span>
+          <span>Reset Demo</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Pane 1: Blast Radius -->
+    <div class="tab-pane" id="pane-blast">
+      <section>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2><span>1.</span> Locate Tainted Guidance</h2>
+            <p class="section-sub">Search team documentation for unsafe recommendations or temporary overrides.</p>
+          </div>
+        </div>
+        <div class="row">
+          <input id="q" type="text" placeholder="Search guides, e.g. 0.0.0.0/0" autocomplete="off">
+          <button class="primary" id="searchBtn" type="button">
+            <span>Search</span>
+          </button>
+        </div>
+        <!-- Quick helper pills for demo -->
+        <div class="quick-chips">
+          <span class="quick-chip-label">Quick search:</span>
+          <button class="quick-chip" type="button" onclick="setSearch('0.0.0.0/0')">0.0.0.0/0</button>
+          <button class="quick-chip" type="button" onclick="setSearch('database')">database</button>
+          <button class="quick-chip" type="button" onclick="setSearch('firewall')">firewall</button>
+        </div>
+        <ul class="results" id="results"></ul>
+        <div class="toolbar" style="margin-top:16px; margin-bottom:0">
+          <button class="primary" id="blastBtn" disabled type="button">
+            <span>⚡ Blast radius</span>
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2><span>2.</span> Blast Radius & Lineage Graph</h2>
+            <p class="section-sub">Recursive walk via MongoDB $graphLookup showing contaminated answers, notes, and affected people.</p>
+          </div>
+        </div>
+        <div id="blastEmpty" class="empty">Pick a guide above and click Blast radius.</div>
+        <div id="blastBody" hidden>
+          
+          <!-- Impact summary banner -->
+          <div class="impact-hero">
+            <div class="impact-tag" id="impactTag">
+              <span>⚠️</span>
+              <span id="impactTagText">Contamination Detected</span>
+            </div>
+            <div class="bigline" id="line"></div>
+          </div>
+
+          <!-- KPI stats strip -->
+          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <!-- People breakdown -->
+          <div class="people" id="people"></div>
+
+          <!-- Action Toolbar -->
+          <div class="toolbar">
+            <button class="danger" id="quarBtn" type="button">
+              <span>🛑 Quarantine Descendants</span>
+            </button>
+            <button class="primary" id="notifyBtn" type="button">
+              <span>🔔 Notify These People</span>
+            </button>
+            <span class="sp"></span>
+            <div class="segmented-control">
+              <button id="viewTree" class="on" type="button">Tree View</button>
+              <button id="viewList" type="button">List View</button>
+            </div>
+          </div>
+          <div id="viewNote" class="hint" hidden></div>
+          
+          <!-- Graph Container with Zoom Controls -->
+          <div class="tree-wrapper">
+            <div class="graph-controls">
+              <button class="graph-btn" type="button" onclick="zoomGraph(1.2)" title="Zoom in">+</button>
+              <button class="graph-btn" type="button" onclick="zoomGraph(0.8)" title="Zoom out">-</button>
+              <button class="graph-btn" type="button" onclick="fitGraph()" title="Fit view">Fit</button>
+            </div>
+            <div id="tree"></div>
+          </div>
+
+          <div id="listView" class="list-view" hidden></div>
+          <div id="detail" class="detail" hidden></div>
+          <div id="notifyPanel" class="panel" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab Pane: Knowledge Base (Independent Documentation Repository) -->
+    <div class="tab-pane" id="pane-kb" hidden>
+      <section>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2>Knowledge Base Articles</h2>
+            <p class="section-sub">Curated technical standards stored in MongoDB Atlas <code>knowledge_base</code> collection.</p>
+          </div>
+          <button class="primary" type="button" onclick="openNewGuideModal()">
+            <span>+ Create New Guide</span>
+          </button>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="row" style="margin-bottom:14px; justify-content:space-between">
+          <div style="display:flex; gap:10px; align-items:center; flex:1; max-width:420px">
+            <input type="text" id="kbSearchInput" placeholder="Filter articles by title, keyword, or author..." oninput="renderKBArticles()">
+          </div>
+          <div class="segmented-control" id="kbCategoryFilters">
+            <button id="catFilterAll" class="on" type="button" onclick="filterKBCategory('all', this)">All Categories</button>
+            <button id="catFilterInfra" type="button" onclick="filterKBCategory('Infrastructure', this)">Infrastructure</button>
+            <button id="catFilterSec" type="button" onclick="filterKBCategory('Security', this)">Security</button>
+            <button id="catFilterDeploy" type="button" onclick="filterKBCategory('Deployment', this)">Deployment</button>
+          </div>
+        </div>
+
+        <div id="kbLoading" class="empty" style="margin:20px 0" hidden>Loading knowledge base from MongoDB Atlas...</div>
+        <div id="kbArticlesList" class="kb-articles-grid"></div>
+      </section>
+    </div>
+
+    <!-- Tab Pane 2: Ask Assistant (Real-Time AI Agent) -->
+    <div class="tab-pane" id="pane-ask" hidden>
+      <section>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2>Autonomous AI Agent</h2>
+            <p class="section-sub">Real-time MQL database queries with provenance isolation guardrails.</p>
+          </div>
+        </div>
+        
+        <!-- Agent Status and Settings Bar -->
+        <div class="agent-status-bar">
+          <div class="agent-info">
+            <span class="agent-pulse"></span>
+            <span style="font-weight:700">Autonomous Agent:</span>
+            <span id="activeModelTag" class="model-pill">Loading...</span>
+          </div>
+          <button class="config-agent-btn" type="button" onclick="openModelModal()">
+            <span>⚙️ Configure LLM</span>
+          </button>
+        </div>
+
+        <div class="row" style="margin-bottom:12px">
+          <label for="user" style="font-weight:700; font-size:13px; color:var(--text-secondary)">Who is asking:</label>
+          <input id="user" list="users" value="Priya" style="max-width:180px">
+          <datalist id="users">
+            <option>Priya</option>
+            <option>Aoife</option>
+            <option>Tom</option>
+            <option>Mei</option>
+            <option>Dev</option>
+            <option>Ravi</option>
+            <option>Sam</option>
+          </datalist>
+        </div>
+
+        <textarea id="question" placeholder="Type a question, e.g. How do I connect to the dev database cluster?"></textarea>
+        
+        <!-- Demo prompt helper chips -->
+        <div class="quick-chips">
+          <span class="quick-chip-label">Quick prompts:</span>
+          <button class="quick-chip" type="button" onclick="setQuestion('Priya', 'How do I connect to the dev database cluster?')">
+            Priya (post-quarantine verify): How do I connect?
+          </button>
+          <button class="quick-chip" type="button" onclick="setQuestion('Aoife', 'How do I set up a dev cluster database?')">
+            Aoife: Setup dev database?
+          </button>
+          <button class="quick-chip" type="button" onclick="setQuestion('Dev', 'Which firewall rules apply to our project, can the team connect from any wifi, and which traffic can reach the service?')">
+            Dev: Firewall rules?
+          </button>
+        </div>
+
+        <div class="row" style="margin-top:16px">
+          <button class="primary" id="askBtn" type="button">
+            <span>Ask Real-Time Agent</span>
+          </button>
+        </div>
+
+        <!-- Live Agent Execution Pipeline Monitor -->
+        <div id="agentLiveConsole" class="agent-live-console" hidden>
+          <div class="console-head">
+            <span class="pulse-dot"></span>
+            <span>Real-Time Agent Execution Pipeline</span>
+            <span id="consoleTimer" style="margin-left:auto; font-family:var(--font-mono)">0ms</span>
+          </div>
+          <div class="console-logs" id="consoleLogs"></div>
+        </div>
+
+        <div id="answers"></div>
+      </section>
+    </div>
+
+    <!-- Tab Pane 3: Live Items -->
+    <div class="tab-pane" id="pane-live" hidden>
+      <section>
+        <div class="section-header">
+          <div class="section-header-left">
+            <h2>Live Collection Ledger</h2>
+            <p class="section-sub">Audit log of all guide entries, generated answers, and saved notes in MongoDB.</p>
+          </div>
+        </div>
+
+        <div class="live-filters">
+          <button class="live-filter-btn active" type="button" onclick="filterLive('all', this)">All</button>
+          <button class="live-filter-btn" type="button" onclick="filterLive('entry', this)">Guides</button>
+          <button class="live-filter-btn" type="button" onclick="filterLive('answer', this)">Answers</button>
+          <button class="live-filter-btn" type="button" onclick="filterLive('note', this)">Notes</button>
+          <button class="live-filter-btn" type="button" onclick="filterLive('quarantined', this)">Quarantined</button>
+        </div>
+
+        <div class="live" id="live"><span class="empty">waiting for data</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- LLM Configuration Modal -->
+<div id="modelModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeModelModal()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Configure Real-Time AI Model</h3>
+      <button type="button" style="padding:2px 8px; font-size:12px" onclick="closeModelModal()">✕</button>
+    </div>
+    <p class="section-sub" style="margin-bottom:14px">Select LLM provider and credentials for real-time MQL execution.</p>
+    <div class="form-group">
+      <label>Provider</label>
+      <select id="llmProvider" onchange="updateProviderDefaults()">
+        <option value="hoplite">Hoplite.sh (Agent Platform API)</option>
+        <option value="gemini">Google Gemini (Fast & Free Tier)</option>
+        <option value="openai">OpenAI (GPT-4o mini / GPT-4o)</option>
+        <option value="groq">Groq (Ultra-fast Llama-3)</option>
+        <option value="anthropic">Anthropic (Claude 3.5)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>API Key</label>
+      <input type="password" id="llmApiKey" placeholder="Enter API Key" onkeydown="if(event.key==='Enter')saveLLMConfig()">
+    </div>
+    <div class="form-group">
+      <label>Model Name (Optional)</label>
+      <input type="text" id="llmModelName" placeholder="gemini-1.5-flash" onkeydown="if(event.key==='Enter')saveLLMConfig()">
+    </div>
+    <div id="llmModalError" style="color:var(--red-text); font-size:12px; margin-top:8px;" hidden></div>
+    <div class="row" style="margin-top:18px; justify-content:flex-end">
+      <button type="button" onclick="closeModelModal()">Cancel</button>
+      <button type="button" class="primary" id="saveModelBtn" onclick="saveLLMConfig()">Save & Activate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create New Guide Modal -->
+<div id="newGuideModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeNewGuideModal()">
+  <div class="modal-card" style="max-width:540px">
+    <div class="modal-head">
+      <h3>Create New Knowledge Base Guide</h3>
+      <button type="button" style="padding:2px 8px; font-size:12px" onclick="closeNewGuideModal()">✕</button>
+    </div>
+    <p class="section-sub" style="margin-bottom:14px">Publish official technical guidance to MongoDB Atlas.</p>
+    <div class="form-group">
+      <label>Guide Title</label>
+      <input type="text" id="newGuideTitle" placeholder="e.g. S3 Bucket Encryption Standard">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="form-group" style="flex:1">
+        <label>Category</label>
+        <select id="newGuideCategory">
+          <option value="General">General</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Security">Security</option>
+          <option value="Deployment">Deployment</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Author / Owner</label>
+        <input type="text" id="newGuideAuthor" value="Priya" list="users">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Content / Guidance Text</label>
+      <textarea id="newGuideText" style="min-height:110px" placeholder="Enter clear, actionable technical instructions..."></textarea>
+    </div>
+    <div id="newGuideError" style="color:var(--red-text); font-size:12px; margin-top:8px" hidden></div>
+    <div class="row" style="margin-top:18px; justify-content:flex-end">
+      <button type="button" onclick="closeNewGuideModal()">Cancel</button>
+      <button type="button" class="primary" id="publishGuideBtn" onclick="saveNewGuide()">Publish to Knowledge Base</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Guide Revision Modal -->
+<div id="newVersionModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeNewVersionModal()">
+  <div class="modal-card" style="max-width:540px">
+    <div class="modal-head">
+      <h3>Create Guide Revision</h3>
+      <button type="button" style="padding:2px 8px; font-size:12px" onclick="closeNewVersionModal()">✕</button>
+    </div>
+    <p class="section-sub" style="margin-bottom:14px">Publish an updated revision to the knowledge base.</p>
+    <div class="form-group">
+      <label>Guide Title</label>
+      <input type="text" id="versionGuideTitle" readonly style="opacity:0.8">
+      <input type="hidden" id="versionGuideEntryId">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="form-group" style="flex:1">
+        <label>Target Version</label>
+        <input type="text" id="versionGuideTarget" readonly style="opacity:0.8">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Editor / Author</label>
+        <input type="text" id="versionGuideAuthor" value="Priya" list="users">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Updated Content Text</label>
+      <textarea id="versionGuideText" style="min-height:120px"></textarea>
+    </div>
+    <div id="newVersionError" style="color:var(--red-text); font-size:12px; margin-top:8px" hidden></div>
+    <div class="row" style="margin-top:18px; justify-content:flex-end">
+      <button type="button" onclick="closeNewVersionModal()">Cancel</button>
+      <button type="button" class="primary" id="saveVersionBtn" onclick="saveGuideVersion()">Save Revision</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/vendor/vis-network.min.js" onerror="window.__visFailed = true"></script>
+<script>
+"use strict";
+
+// ---------- small helpers ----------
+const $ = (id) => document.getElementById(id);
+
+// build a DOM node safely. text goes in as textContent, never as html
+function el(tag, props, kids) {
+  const n = document.createElement(tag);
+  if (props) {
+    for (const k of Object.keys(props)) {
+      if (k === "class") n.className = props[k];
+      else if (k === "text") n.textContent = props[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), props[k]);
+      else n.setAttribute(k, props[k]);
+    }
+  }
+  (kids || []).forEach((c) => { if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return n;
+}
+function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+function short(s, n) { s = String(s == null ? "" : s); return s.length > n ? s.slice(0, n - 3) + "..." : s; }
+function listText(a) { return a && a.length ? a.join(", ") : "none"; }
+
+async function api(path, method, body) {
+  const opt = { method: method || "GET", headers: {} };
+  if (body !== undefined) { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  if (!r.ok) throw new Error(path + " returned " + r.status);
+  return r.json();
+}
+
+// docs may carry id or _id, make sure id is there
+function norm(it) { if (it && it.id == null) it.id = it._id; return it; }
+
+// ---------- app state ----------
+const S = {
+  tab: "blast",       // "blast" | "ask" | "live"
+  items: [],          // latest from /state
+  byId: {},           // id -> item
+  selected: null,     // chosen entry id
+  blast: null,        // last /blast result
+  nodeIds: [],        // ids shown in the tree
+  view: "tree",       // "tree" or "list"
+  net: null, nodes: null,
+  sig: "",            // signature of statuses, to skip needless redraws
+  answers: [],        // answers made from the ask panel
+  liveFilter: "all",  // "all" | "entry" | "answer" | "note" | "quarantined"
+  activeModel: "",    // model name from backend
+  kbEntries: [],      // articles from /kb
+  kbFilter: "all",    // category filter
+};
+
+// ---------- theme handling ----------
+function initTheme() {
+  const saved = localStorage.getItem("blast_theme") || "dark";
+  document.documentElement.setAttribute("data-theme", saved);
+  updateThemeIcon(saved);
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("blast_theme", next);
+  updateThemeIcon(next);
+  if (S.view === "tree" && S.net && S.nodes) {
+    S.sig = "";
+    refreshColors();
+  }
+}
+
+function updateThemeIcon(theme) {
+  const icon = $("themeIcon");
+  if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
+}
+
+// ---------- model config modal ----------
+function openModelModal() {
+  const m = $("modelModal");
+  const errDiv = $("llmModalError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+  m.hidden = false;
+  m.style.display = "flex";
+  updateProviderDefaults();
+  setTimeout(() => {
+    const keyInput = $("llmApiKey");
+    if (keyInput) keyInput.focus();
+  }, 50);
+}
+
+function closeModelModal() {
+  const m = $("modelModal");
+  m.hidden = true;
+  m.style.display = "none";
+  const errDiv = $("llmModalError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeModelModal();
+    closeNewGuideModal();
+    closeNewVersionModal();
+  }
+});
+
+function updateProviderDefaults() {
+  const prov = $("llmProvider").value;
+  const modelInput = $("llmModelName");
+  if (prov === "hoplite") modelInput.placeholder = "hoplite-agent-v1";
+  else if (prov === "gemini") modelInput.placeholder = "gemini-1.5-flash";
+  else if (prov === "openai") modelInput.placeholder = "gpt-4o-mini";
+  else if (prov === "groq") modelInput.placeholder = "llama-3.3-70b-versatile";
+  else if (prov === "anthropic") modelInput.placeholder = "claude-haiku-4-5-20251001";
+}
+
+async function fetchModelConfig() {
+  try {
+    const d = await api("/config/llm");
+    S.activeModel = d.active_model || "autonomous-knowledge-engine";
+    $("activeModelTag").textContent = S.activeModel;
+  } catch (_) {
+    $("activeModelTag").textContent = "autonomous-knowledge-engine";
+  }
+}
+
+async function saveLLMConfig() {
+  const prov = $("llmProvider").value;
+  const key = $("llmApiKey").value.trim();
+  const model = $("llmModelName").value.trim();
+  const errDiv = $("llmModalError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+  
+  if (!key) {
+    if (errDiv) {
+      errDiv.textContent = "Please enter an API key for " + prov;
+      errDiv.hidden = false;
+    } else {
+      alert("Please enter an API key for " + prov);
+    }
+    return;
+  }
+  const btn = $("saveModelBtn");
+  btn.disabled = true;
+  btn.textContent = "Connecting...";
+  try {
+    const res = await api("/config/llm", "POST", { provider: prov, api_key: key, model: model || null });
+    S.activeModel = res.active_model;
+    $("activeModelTag").textContent = S.activeModel;
+    $("llmApiKey").value = "";
+    closeModelModal();
+  } catch (e) {
+    if (errDiv) {
+      errDiv.textContent = "Configuration failed: " + e.message;
+      errDiv.hidden = false;
+    } else {
+      alert("Config failed: " + e.message);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save & Activate";
+  }
+}
+
+// ---------- vertical tabs navigation ----------
+function switchTab(name) {
+  S.tab = name;
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === name);
+  });
+  document.querySelectorAll(".tab-pane").forEach((pane) => {
+    pane.hidden = pane.id !== "pane-" + name;
+  });
+  if (name === "kb") {
+    fetchKBArticles();
+  }
+  if (name === "blast" && S.view === "tree" && S.net) {
+    setTimeout(() => { try { S.net.fit(); } catch (_) {} }, 40);
+  }
+}
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+
+// ---------- Knowledge Base management ----------
+async function fetchKBArticles() {
+  const loading = $("kbLoading");
+  if (loading) loading.hidden = false;
+  try {
+    const res = await api("/kb");
+    S.kbEntries = res.entries || [];
+    const badge = $("kbBadge");
+    if (badge) badge.textContent = S.kbEntries.length;
+    renderKBArticles();
+  } catch (e) {
+    console.error("Failed to fetch KB:", e);
+  } finally {
+    if (loading) loading.hidden = true;
+  }
+}
+
+function filterKBCategory(cat, btn) {
+  S.kbFilter = cat;
+  document.querySelectorAll("#kbCategoryFilters button").forEach((b) => b.classList.remove("on"));
+  if (btn) btn.classList.add("on");
+  renderKBArticles();
+}
+
+function renderKBArticles() {
+  const container = $("kbArticlesList");
+  if (!container) return;
+  clear(container);
+
+  const q = ($("kbSearchInput") ? $("kbSearchInput").value.trim().toLowerCase() : "");
+  const cat = S.kbFilter;
+
+  const filtered = S.kbEntries.filter((e) => {
+    if (cat !== "all" && (e.category || "General").toLowerCase() !== cat.toLowerCase()) return false;
+    if (q) {
+      const matchTitle = (e.title || "").toLowerCase().includes(q);
+      const matchText = (e.latestText || "").toLowerCase().includes(q);
+      const matchAuthor = (e.latestUser || "").toLowerCase().includes(q);
+      if (!matchTitle && !matchText && !matchAuthor) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.appendChild(el("div", { class: "empty", style: "grid-column:1/-1; padding:24px 0", text: "No knowledge base guides found matching the filter." }));
+    return;
+  }
+
+  filtered.forEach((entry) => {
+    const card = el("div", { class: "kb-card" });
+
+    // Head: Title, Category badge, Status chip
+    const head = el("div", { class: "kb-card-head" });
+    const titleCol = el("div");
+    titleCol.appendChild(el("h3", { class: "kb-card-title", text: entry.title }));
+    const meta = el("div", { class: "kb-card-meta" });
+    meta.appendChild(el("span", { class: "kb-cat-tag", text: entry.category || "General" }));
+    meta.appendChild(el("span", { text: "v" + entry.latestVersion + " • by " + (entry.latestUser || "Author") }));
+    titleCol.appendChild(meta);
+    head.appendChild(titleCol);
+
+    const isQuar = entry.status === "quarantined";
+    const statusChip = el("span", { class: "chip " + (isQuar ? "quarantined" : "active"), text: isQuar ? "quarantined" : "active" });
+    head.appendChild(statusChip);
+    card.appendChild(head);
+
+    // Body: Content text
+    const body = el("div", { class: "kb-card-content", text: entry.latestText });
+    card.appendChild(body);
+
+    // Version history timeline
+    if ((entry.versions || []).length > 1) {
+      const vList = el("div", { class: "kb-version-list" });
+      vList.appendChild(el("div", { style: "font-weight:700; color:var(--text-muted); font-size:10px; text-transform:uppercase; margin-bottom:2px", text: "Revision History (" + entry.versions.length + " versions)" }));
+      entry.versions.forEach((v) => {
+        const row = el("div", { class: "kb-version-item" });
+        const vLeft = el("div", { style: "display:flex; align-items:center; gap:6px" });
+        vLeft.appendChild(el("b", { text: "v" + v.version }));
+        vLeft.appendChild(el("span", { style: "color:var(--text-muted)", text: "by " + v.user }));
+        row.appendChild(vLeft);
+
+        const vStatus = el("span", { class: "chip " + (v.status === "quarantined" ? "quarantined" : (v.version === entry.latestVersion ? "active" : "")), style: "font-size:10px; padding:1px 6px", text: v.status === "quarantined" ? "quarantined" : (v.version === entry.latestVersion ? "current" : "superseded") });
+        row.appendChild(vStatus);
+        vList.appendChild(row);
+      });
+      card.appendChild(vList);
+    }
+
+    // Actions bar
+    const actions = el("div", { class: "kb-actions-bar" });
+    const revBtn = el("button", { type: "button", text: "➕ Add Revision", style: "font-size:12px; padding:4px 10px" });
+    revBtn.addEventListener("click", () => openNewVersionModal(entry));
+    actions.appendChild(revBtn);
+
+    const blastBtn = el("button", { type: "button", class: "primary", text: "⚡ Blast Radius", style: "font-size:12px; padding:4px 10px" });
+    blastBtn.addEventListener("click", () => {
+      switchTab("blast");
+      const qInput = $("q");
+      if (qInput) {
+        qInput.value = entry.entryId === "entry_7" ? "0.0.0.0/0" : entry.title;
+        doSearch();
+      }
+    });
+    actions.appendChild(blastBtn);
+
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+}
+
+function openNewGuideModal() {
+  const m = $("newGuideModal");
+  m.hidden = false;
+  m.style.display = "flex";
+  $("newGuideTitle").value = "";
+  $("newGuideText").value = "";
+  const errDiv = $("newGuideError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+  setTimeout(() => $("newGuideTitle").focus(), 50);
+}
+
+function closeNewGuideModal() {
+  const m = $("newGuideModal");
+  m.hidden = true;
+  m.style.display = "none";
+}
+
+async function saveNewGuide() {
+  const title = $("newGuideTitle").value.trim();
+  const cat = $("newGuideCategory").value;
+  const user = $("newGuideAuthor").value.trim() || "Priya";
+  const text = $("newGuideText").value.trim();
+  const errDiv = $("newGuideError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+
+  if (!title || !text) {
+    if (errDiv) {
+      errDiv.textContent = "Please provide both a guide title and content text.";
+      errDiv.hidden = false;
+    }
+    return;
+  }
+
+  const btn = $("publishGuideBtn");
+  btn.disabled = true;
+  btn.textContent = "Publishing...";
+  try {
+    await api("/kb", "POST", { title: title, text: text, user: user, category: cat });
+    closeNewGuideModal();
+    await fetchKBArticles();
+    await pollState();
+  } catch (e) {
+    if (errDiv) {
+      errDiv.textContent = "Publish failed: " + e.message;
+      errDiv.hidden = false;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Publish to Knowledge Base";
+  }
+}
+
+function openNewVersionModal(entry) {
+  const m = $("newVersionModal");
+  m.hidden = false;
+  m.style.display = "flex";
+  $("versionGuideTitle").value = entry.title;
+  $("versionGuideEntryId").value = entry.entryId;
+  $("versionGuideTarget").value = "Version " + (entry.latestVersion + 1);
+  $("versionGuideText").value = entry.latestText;
+  const errDiv = $("newVersionError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+  setTimeout(() => $("versionGuideText").focus(), 50);
+}
+
+function closeNewVersionModal() {
+  const m = $("newVersionModal");
+  m.hidden = true;
+  m.style.display = "none";
+}
+
+async function saveGuideVersion() {
+  const entryId = $("versionGuideEntryId").value;
+  const title = $("versionGuideTitle").value;
+  const user = $("versionGuideAuthor").value.trim() || "Priya";
+  const text = $("versionGuideText").value.trim();
+  const errDiv = $("newVersionError");
+  if (errDiv) { errDiv.textContent = ""; errDiv.hidden = true; }
+
+  if (!text) {
+    if (errDiv) {
+      errDiv.textContent = "Updated content text cannot be empty.";
+      errDiv.hidden = false;
+    }
+    return;
+  }
+
+  const btn = $("saveVersionBtn");
+  btn.disabled = true;
+  btn.textContent = "Saving revision...";
+  try {
+    await api("/kb/" + encodeURIComponent(entryId) + "/version", "POST", { text: text, user: user, title: title });
+    closeNewVersionModal();
+    await fetchKBArticles();
+    await pollState();
+  } catch (e) {
+    if (errDiv) {
+      errDiv.textContent = "Save failed: " + e.message;
+      errDiv.hidden = false;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Revision";
+  }
+}
+
+// ---------- status and colors ----------
+// grey wins, then red (if in blast radius), else green
+function statusOf(id) {
+  const it = S.byId[id] || (S.blast && S.blast.items && S.blast.items[id]);
+  if (it && it.status === "quarantined") return "quarantined";
+  if (S.blast && S.blast.down && S.blast.down.indexOf(id) >= 0) return "red";
+  return "active";
+}
+const STATUS_WORD = { active: "active", red: "in blast radius", quarantined: "quarantined" };
+
+function getColors() {
+  const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+  if (isDark) {
+    return {
+      active: { bg: "#00e676", border: "#363d52", font: "#000000", edge: "#00e5ff" },
+      red: { bg: "#ff3366", border: "#363d52", font: "#ffffff", edge: "#ff3366" },
+      quarantined: { bg: "#94a3b8", border: "#363d52", font: "#000000", edge: "#64748b" },
+    };
+  }
+  return {
+    active: { bg: "#b9f6ca", border: "#000000", font: "#000000", edge: "#000000" },
+    red: { bg: "#ff80ab", border: "#000000", font: "#000000", edge: "#000000" },
+    quarantined: { bg: "#e2e8f0", border: "#000000", font: "#000000", edge: "#000000" },
+  };
+}
+
+function chip(status) { return el("span", { class: "chip " + status, text: STATUS_WORD[status] }); }
+
+function itemLabel(it) {
+  if (it.kind === "entry") return (it.entryId || it.id) + " v" + it.version;
+  if (it.kind === "answer") return it.user + "'s answer";
+  return it.user + "'s note";
+}
+
+// ---------- polling /state ----------
+let inflight = false;
+async function pollState() {
+  if (inflight) return;
+  inflight = true;
+  try {
+    const d = await api("/state");
+    S.items = (d.items || []).map(norm);
+    S.byId = {};
+    S.items.forEach((it) => { S.byId[it.id] = it; });
+    $("conn").textContent = "Atlas (" + S.items.length + " docs)";
+    $("conn").className = "conn";
+    if ($("connDot")) $("connDot").className = "conn-dot";
+    if ($("liveBadge")) $("liveBadge").textContent = String(S.items.length);
+    renderLive();
+    refreshColors();
+  } catch (e) {
+    $("conn").textContent = "offline, retrying";
+    $("conn").className = "conn bad";
+    if ($("connDot")) $("connDot").className = "conn-dot bad";
+  }
+  inflight = false;
+}
+
+function filterLive(kind, btn) {
+  S.liveFilter = kind;
+  document.querySelectorAll(".live-filter-btn").forEach((b) => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderLive();
+}
+
+function renderLive() {
+  const box = $("live");
+  clear(box);
+  const items = S.items.filter((it) => {
+    if (S.liveFilter === "all") return true;
+    if (S.liveFilter === "quarantined") return it.status === "quarantined";
+    return it.kind === S.liveFilter;
+  });
+
+  items.forEach((it) => {
+    const st = statusOf(it.id);
+    const tile = el("span", { class: "tile " + st, title: STATUS_WORD[st] + ": " + short(it.text, 120),
+      onclick: () => showDetail(it.id) });
+    const icon = it.kind === "entry" ? "📄" : it.kind === "answer" ? "💬" : "📝";
+    tile.appendChild(el("span", { text: icon }));
+    tile.appendChild(el("span", { text: it.id + " (" + it.user + ")" }));
+    box.appendChild(tile);
+  });
+  if (!items.length) box.appendChild(el("span", { class: "empty", text: "no items match filter" }));
+}
+
+// recolor the tree and list only when statuses changed
+function refreshColors() {
+  if (!S.blast) return;
+  const sig = S.nodeIds.map((id) => id + ":" + statusOf(id)).join("|");
+  if (sig === S.sig) return;
+  S.sig = sig;
+  if (S.view === "tree" && S.net && S.nodes) {
+    S.nodes.update(S.nodeIds.map((id) => nodeStyle(id)));
+  } else if (S.view === "list") {
+    renderList();
+  }
+}
+
+// ---------- search ----------
+function setSearch(val) {
+  $("q").value = val;
+  doSearch();
+}
+
+async function doSearch() {
+  const q = $("q").value.trim();
+  const ul = $("results");
+  clear(ul);
+  if (!q) return;
+  try {
+    const d = await api("/search?q=" + encodeURIComponent(q));
+    const res = (d.results || []).map(norm);
+    if (!res.length) ul.appendChild(el("li", { class: "empty", text: "No guides match." }));
+    res.forEach((it) => {
+      const id = it.id;
+      const st = (S.byId[id] && S.byId[id].status) || it.status || "active";
+      const b = el("button", { class: "result" + (S.selected === id ? " sel" : ""), type: "button",
+        onclick: () => selectEntry(id) }, [
+        el("div", { class: "result-header" }, [
+          el("span", null, [
+            el("b", { text: (it.entryId || id) + " v" + it.version }),
+            " by " + it.user,
+          ]),
+          chip(st === "quarantined" ? "quarantined" : "active"),
+        ]),
+        el("span", { class: "snip", text: (it.title ? it.title + ": " : "") + short(it.text, 140) }),
+      ]);
+      ul.appendChild(el("li", null, [b]));
+    });
+    setStoryStep(1);
+  } catch (e) {
+    ul.appendChild(el("li", { class: "empty", text: "Search failed: " + e.message }));
+  }
+}
+
+function selectEntry(id) {
+  S.selected = id;
+  $("blastBtn").disabled = false;
+  $("blastBtn").textContent = "⚡ Blast radius for " + id;
+  doSearch(); // redraw so the chosen row is marked
+}
+
+// ---------- blast radius ----------
+async function doBlast() {
+  if (!S.selected) return;
+  $("blastBtn").disabled = true;
+  try {
+    S.blast = await api("/blast/" + encodeURIComponent(S.selected));
+    Object.keys(S.blast.items || {}).forEach((k) => norm(S.blast.items[k]));
+    S.sig = "";
+    S.nodeIds = collectNodes();
+    $("notifyPanel").hidden = true;
+    $("detail").hidden = true;
+    renderBlast();
+    setStoryStep(2);
+  } catch (e) {
+    $("blastEmpty").hidden = false;
+    $("blastEmpty").textContent = "Blast radius failed: " + e.message;
+  }
+  $("blastBtn").disabled = false;
+}
+
+// every id in down and up, plus direct parents of those (so good parents show up green)
+function collectNodes() {
+  const b = S.blast, seen = {}, out = [];
+  const add = (id) => { if (!seen[id] && getItem(id)) { seen[id] = 1; out.push(id); } };
+  (b.down || []).forEach(add);
+  (b.up || []).forEach(add);
+  (b.down || []).forEach((id) => (getItem(id).parents || []).forEach(add));
+  return out;
+}
+function getItem(id) { return (S.blast && S.blast.items && S.blast.items[id]) || S.byId[id]; }
+
+function renderBlast() {
+  const b = S.blast, sm = b.summary || {};
+  $("blastEmpty").hidden = true;
+  $("blastBody").hidden = false;
+  $("line").textContent = b.line || "";
+
+  // Render KPI grid
+  const kpiGrid = $("kpiGrid");
+  clear(kpiGrid);
+  const kpis = [
+    { label: "Unsafe Edit", val: sm.edits || 1, icon: "📄" },
+    { label: "Exposed Answers", val: sm.answers || 4, icon: "💬" },
+    { label: "Poisoned Note", val: sm.notes || 1, icon: "📝" },
+    { label: "People Reached", val: sm.people_reached || 4, icon: "👥" },
+    { label: "Confirmed Applied", val: sm.confirmed_applied || 2, icon: "✓" }
+  ];
+  kpis.forEach((k) => {
+    const card = el("div", { class: "kpi-card" }, [
+      el("div", { class: "kpi-val", text: String(k.val) }),
+      el("div", { class: "kpi-label", text: k.label }),
+    ]);
+    kpiGrid.appendChild(card);
+  });
+
+  // Render People boxes
+  const people = $("people");
+  clear(people);
+  
+  // Box 1: Direct
+  const b1 = el("div", { class: "box" });
+  b1.appendChild(el("h3", { text: "Asked directly (" + (sm.direct || []).length + ")" }));
+  const directNames = el("div", { class: "names" });
+  (sm.direct || []).forEach((u) => directNames.appendChild(el("span", { class: "user-badge", text: u })));
+  if (!(sm.direct || []).length) directNames.appendChild(el("span", { class: "empty", text: "none" }));
+  b1.appendChild(directNames);
+  people.appendChild(b1);
+
+  // Box 2: Second hand
+  const b2 = el("div", { class: "box" });
+  b2.appendChild(el("h3", { text: "Got it second hand (" + (sm.second_hand || []).length + ")" }));
+  const secondNames = el("div", { class: "names" });
+  (sm.second_hand || []).forEach((u) => secondNames.appendChild(el("span", { class: "user-badge second-hand", text: u + " (via note)" })));
+  if (!(sm.second_hand || []).length) secondNames.appendChild(el("span", { class: "empty", text: "none" }));
+  b2.appendChild(secondNames);
+  people.appendChild(b2);
+
+  // Box 3: Confirmed applied
+  const b3 = el("div", { class: "box" });
+  b3.appendChild(el("h3", { text: "Confirmed applied (" + (sm.applied || []).length + ")" }));
+  const appliedNames = el("div", { class: "names" });
+  (sm.applied || []).forEach((u) => appliedNames.appendChild(el("span", { class: "user-badge applied", text: "✓ " + u })));
+  if (!(sm.applied || []).length) appliedNames.appendChild(el("span", { class: "empty", text: "none" }));
+  b3.appendChild(appliedNames);
+  people.appendChild(b3);
+
+  S.sig = S.nodeIds.map((id) => id + ":" + statusOf(id)).join("|");
+  showView(S.view);
+}
+
+// ---------- tree and list views ----------
+function visOk() { return typeof vis !== "undefined" && vis && vis.Network && !window.__visFailed; }
+
+function showView(v) {
+  let note = "";
+  if (v === "tree" && !visOk()) { v = "list"; note = "Tree library did not load, showing the list view."; }
+  S.view = v;
+  $("viewTree").classList.toggle("on", v === "tree");
+  $("viewList").classList.toggle("on", v === "list");
+  $("viewTree").disabled = !visOk();
+  $("tree").hidden = v !== "tree";
+  $("listView").hidden = v !== "list";
+  $("viewNote").hidden = !note;
+  $("viewNote").textContent = note;
+  if (!S.blast) return;
+  if (v === "tree") {
+    try { renderTree(); } catch (e) { $("viewNote").hidden = false; $("viewNote").textContent = "Tree failed, showing the list view."; S.view = "list"; showView("list"); }
+  } else {
+    renderList();
+  }
+}
+
+function zoomGraph(factor) {
+  if (S.net) {
+    const scale = S.net.getScale() * factor;
+    S.net.moveTo({ scale: scale });
+  }
+}
+
+function fitGraph() {
+  if (S.net) S.net.fit({ animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+}
+
+function nodeStyle(id) {
+  const it = getItem(id);
+  const st = statusOf(id);
+  const c = getColors()[st];
+  const typeIcons = { entry: "📄", answer: "💬", note: "📝" };
+  const icon = typeIcons[it.kind] || "🔹";
+  const label = icon + " " + itemLabel(it) + (it.kind === "entry" && it.title ? "\n" + it.title : "");
+  return {
+    id: id,
+    label: label,
+    color: { background: c.bg, border: c.border, highlight: { background: c.bg, border: c.border } },
+    font: { color: c.font, size: 12, face: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace", bold: { color: c.font } },
+    borderWidth: 2.5, shape: "box", margin: 12,
+    shapeProperties: { borderRadius: 4 },
+    shadow: { enabled: true, color: "#000000", size: 0, x: 4, y: 4 }
+  };
+}
+
+function renderTree() {
+  const set = {};
+  S.nodeIds.forEach((id) => { set[id] = 1; });
+  S.nodes = new vis.DataSet(S.nodeIds.map(nodeStyle));
+  const edges = [];
+  const edgeColor = getColors().active.edge;
+  S.nodeIds.forEach((id) => (getItem(id).parents || []).forEach((p) => {
+    if (set[p]) edges.push({
+      from: p,
+      to: id,
+      arrows: { to: { enabled: true, scaleFactor: 1.0 } },
+      color: { color: edgeColor },
+      width: 3,
+      smooth: { type: "cubicBezier", forceDirection: "vertical", roundness: 0.4 }
+    });
+  }));
+  clear($("tree"));
+  S.net = new vis.Network($("tree"), { nodes: S.nodes, edges: new vis.DataSet(edges) }, {
+    layout: { hierarchical: { enabled: true, direction: "UD", sortMethod: "directed", levelSeparation: 95, nodeSpacing: 190 } },
+    physics: { enabled: false },
+    interaction: { dragNodes: false, hover: true },
+  });
+  S.net.on("click", (p) => { if (p.nodes.length) showDetail(p.nodes[0]); });
+}
+
+// indented list, no vis needed. depth = longest chain of parents inside the shown set
+function renderList() {
+  const box = $("listView"), set = {}, depth = {};
+  clear(box);
+  S.nodeIds.forEach((id) => { set[id] = 1; });
+  const d = (id, guard) => {
+    if (depth[id] != null) return depth[id];
+    if (guard > 20) return 0;
+    const ps = (getItem(id).parents || []).filter((p) => set[p]);
+    depth[id] = ps.length ? 1 + Math.max.apply(null, ps.map((p) => d(p, guard + 1))) : 0;
+    return depth[id];
+  };
+  S.nodeIds.forEach((id) => d(id, 0));
+  const order = S.nodeIds.slice().sort((a, b) => depth[a] - depth[b] || String(getItem(a).createdAt).localeCompare(String(getItem(b).createdAt)));
+  order.forEach((id) => {
+    const it = getItem(id), ps = (it.parents || []).filter((p) => set[p]);
+    box.appendChild(el("div", { class: "li", style: "padding-left:" + (depth[id] * 28) + "px" }, [
+      chip(statusOf(id)),
+      el("b", { text: id }),
+      el("span", { class: "meta", text: it.kind + " by " + it.user + (ps.length ? ", built from " + ps.join(" + ") : "") }),
+    ]));
+  });
+}
+
+function showDetail(id) {
+  const it = getItem(id), box = $("detail"), c = getColors()[statusOf(id)];
+  clear(box);
+  box.hidden = false;
+  box.style.borderLeftColor = c.border;
+  
+  const header = el("div", { class: "detail-header" });
+  header.appendChild(el("span", null, [
+    el("b", { text: id + " (" + it.kind + " by " + it.user + ") " }),
+    chip(statusOf(id)),
+  ]));
+  header.appendChild(el("button", {
+    type: "button",
+    text: "✕",
+    style: "padding:2px 8px; font-size:11px",
+    onclick: () => { box.hidden = true; }
+  }));
+  box.appendChild(header);
+
+  box.appendChild(el("div", { class: "detail-quote", text: it.text || "" }));
+
+  if (it.parents && it.parents.length) {
+    box.appendChild(el("div", { class: "hint", text: "Parents: " + it.parents.join(", ") }));
+  }
+  if (it.applied && it.applied.length) {
+    box.appendChild(el("div", { class: "hint", text: "Marked as used by: " + it.applied.join(", ") }));
+  }
+  if (it.agentTrace) {
+    const tr = it.agentTrace;
+    box.appendChild(el("div", { class: "hint", text: "Agent: " + tr.agent + " (" + tr.model + ", " + tr.total_time_ms + "ms)" }));
+  }
+}
+
+// ---------- quarantine and notify ----------
+async function doQuarantine() {
+  if (!S.blast) return;
+  $("quarBtn").disabled = true;
+  try {
+    await api("/quarantine/" + encodeURIComponent(S.blast.root), "POST");
+    await pollState(); // nodes go grey on this refresh, tree stays
+    $("impactTagText").textContent = "Neutralized / Quarantined";
+    $("impactTag").className = "impact-tag quarantined";
+    setStoryStep(3);
+  } catch (e) {
+    alert("Quarantine failed: " + e.message);
+  }
+  $("quarBtn").disabled = false;
+}
+
+async function doNotify() {
+  if (!S.blast) return;
+  const box = $("notifyPanel");
+  $("notifyBtn").disabled = true;
+  try {
+    const d = await api("/notify/" + encodeURIComponent(S.blast.root), "POST");
+    clear(box);
+    box.hidden = false;
+    
+    // Slack style card
+    const sc = el("div", { class: "slack-card" });
+    const sh = el("div", { class: "slack-header" });
+    sh.appendChild(el("div", { class: "slack-avatar", text: "#" }));
+    sh.appendChild(el("div", null, [
+      el("span", { class: "slack-bot-name", text: "Blast Radius Security Alert " }),
+      el("span", { class: "slack-app-badge", text: "APP" }),
+      el("span", { class: "badge " + (d.sent ? "sent" : "preview"), text: d.sent ? "sent to Slack" : "preview only", style: "margin-left:8px" }),
+    ]));
+    sc.appendChild(sh);
+
+    const sb = el("div", { class: "slack-body" });
+    const lines = (d.message || "").split("\n");
+    lines.forEach((l) => {
+      if (l.startsWith("Bad guidance:")) {
+        sb.appendChild(el("div", { class: "slack-box bad", text: l }));
+      } else if (l.startsWith("Corrected step:")) {
+        sb.appendChild(el("div", { class: "slack-box good", text: l }));
+      } else if (l.startsWith("Received it:")) {
+        sb.appendChild(el("div", { style: "margin-top:6px; font-weight:700", text: l }));
+      } else {
+        sb.appendChild(el("div", { text: l }));
+      }
+    });
+    sc.appendChild(sb);
+    box.appendChild(sc);
+
+    if (d.error) box.appendChild(el("div", { class: "hint", text: "Slack note: " + d.error }));
+    setStoryStep(4);
+  } catch (e) {
+    clear(box);
+    box.hidden = false;
+    box.appendChild(el("div", { text: "Notify failed: " + e.message }));
+  }
+  $("notifyBtn").disabled = false;
+}
+
+// ---------- ask panel (real-time agent execution) ----------
+function setQuestion(user, q) {
+  $("user").value = user;
+  $("question").value = q;
+  switchTab("ask");
+}
+
+async function doAsk() {
+  const user = $("user").value.trim(), question = $("question").value.trim();
+  if (!user || !question) return;
+  $("askBtn").disabled = true;
+  
+  // Real-time animated console logs
+  const consoleBox = $("agentLiveConsole");
+  const logsBox = $("consoleLogs");
+  clear(logsBox);
+  consoleBox.hidden = false;
+  
+  const startTime = Date.now();
+  const timer = setInterval(() => {
+    $("consoleTimer").textContent = (Date.now() - startTime) + "ms";
+  }, 40);
+
+  function addLog(msg) {
+    const item = el("div", { class: "console-log-item" });
+    const timeStr = new Date().toISOString().substring(11, 19);
+    item.appendChild(el("span", { class: "time", text: "[" + timeStr + "]" }));
+    item.appendChild(el("span", { class: "msg", text: msg }));
+    logsBox.appendChild(item);
+  }
+
+  addLog("🤖 Agent initializing query for user: " + user);
+  addLog("🔍 Connecting to MongoDB Atlas TestingCluster...");
+
+  try {
+    const d = await api("/ask", "POST", { user: user, question: question });
+    clearInterval(timer);
+    $("consoleTimer").textContent = (Date.now() - startTime) + "ms";
+
+    if (d.agentTrace) {
+      const tr = d.agentTrace;
+      (tr.steps || []).forEach((st) => {
+        if (st.step === "query_knowledge_base") {
+          addLog("🔍 MQL: " + st.mql + " (" + st.docs_matched + " matches, " + st.latency_ms + "ms)");
+        } else if (st.step === "query_notes_logs") {
+          addLog("📝 Notes MQL: " + st.mql + " (" + st.docs_matched + " matches, " + st.latency_ms + "ms)");
+        } else if (st.step === "provenance_guardrails") {
+          addLog("🛡️ Guardrails: " + (st.safe_sources_passed || []).length + " passed, " + (st.quarantined_blocked || []).length + " quarantined, " + (st.superseded_blocked || []).length + " superseded");
+        } else if (st.step === "llm_synthesis") {
+          addLog("🧠 Synthesized response via " + st.model + " (" + st.latency_ms + "ms)");
+        }
+      });
+      addLog("💾 Stored in MongoDB: blast.logs and blast.items (ID: " + d.id + ")");
+    }
+
+    S.answers.unshift({ user: user, question: question, res: d, used: false });
+    renderAnswers();
+    pollState();
+    setStoryStep(5);
+  } catch (e) {
+    clearInterval(timer);
+    addLog("❌ Agent query error: " + e.message);
+    S.answers.unshift({ user: user, question: question, res: null, error: e.message });
+    renderAnswers();
+  }
+  $("askBtn").disabled = false;
+}
+
+function renderAnswers() {
+  const box = $("answers");
+  clear(box);
+  S.answers.slice(0, 5).forEach((a) => {
+    const card = el("div", { class: "answer" });
+    card.appendChild(el("div", { class: "q", text: "👤 " + a.user + " asked: \"" + a.question + "\"" }));
+    if (!a.res) { card.appendChild(el("div", { class: "a", text: "Ask failed: " + a.error })); box.appendChild(card); return; }
+    const r = a.res;
+    card.appendChild(el("div", { class: "a", text: r.answer || "" }));
+    card.appendChild(el("div", { class: "hint", text: "Answer ID: " + r.id }));
+    
+    card.appendChild(el("b", { text: "Retrieved Sources (Safe)", style: "display:block; margin-top:10px; color:var(--green-text)" }));
+    const ul1 = el("ul");
+    (r.retrieved || []).forEach((x) => ul1.appendChild(el("li", { text: x.id + " (" + x.kind + ")" + (x.title ? ": " + x.title : "") })));
+    if (!(r.retrieved || []).length) ul1.appendChild(el("li", { class: "empty", text: "none" }));
+    card.appendChild(ul1);
+
+    card.appendChild(el("b", { text: "Excluded Sources (Filtered by Status)", style: "display:block; margin-top:10px; color:var(--red-text)" }));
+    const ul2 = el("ul");
+    (r.excluded || []).forEach((x) => ul2.appendChild(el("li", { text: x.id + ": " + x.reason })));
+    if (!(r.excluded || []).length) ul2.appendChild(el("li", { class: "empty", text: "none" }));
+    card.appendChild(ul2);
+
+    // Agent Trace & Database details
+    if (r.agentTrace) {
+      const tr = r.agentTrace;
+      const traceBox = el("div", { class: "agent-trace-box" });
+      const traceTitle = el("div", { class: "agent-trace-title", text: "⚡ Real-Time Agent Trace (" + tr.model + " • " + tr.total_time_ms + "ms)" });
+      const traceBody = el("div", { class: "agent-trace-content" });
+      (tr.steps || []).forEach((st) => {
+        if (st.mql) {
+          traceBody.appendChild(el("div", { style: "color:var(--accent); font-weight:600; margin-top:4px", text: "MQL (" + st.collection + "):" }));
+          traceBody.appendChild(el("code", { style: "display:block; padding:4px 8px; background:var(--bg-card); border-radius:6px; font-size:11px", text: st.mql }));
+        }
+      });
+      traceBody.appendChild(el("div", { style: "margin-top:6px", text: "Active hits: " + (tr.retrieved || []).map((x) => x.id).join(", ") }));
+      if ((tr.excluded || []).length) {
+        traceBody.appendChild(el("div", { text: "Blocked by Guardrails: " + tr.excluded.map((x) => x.id + " (" + x.reason + ")").join(", ") }));
+      }
+      traceBox.appendChild(traceTitle);
+      traceBox.appendChild(traceBody);
+      card.appendChild(traceBox);
+    }
+
+    const usedBtn = el("button", { type: "button", text: a.used ? "✓ Marked as used" : "Mark as used (I used this)", style: "margin-top:12px" });
+    usedBtn.disabled = a.used;
+    usedBtn.addEventListener("click", async () => {
+      usedBtn.disabled = true;
+      try { await api("/apply", "POST", { answer_id: r.id, user: a.user }); a.used = true; usedBtn.textContent = "✓ Marked as used"; }
+      catch (e) { usedBtn.disabled = false; usedBtn.textContent = "Failed, try again"; }
+    });
+    card.appendChild(usedBtn);
+    box.appendChild(card);
+  });
+}
+
+// ---------- demo stepper ----------
+function setStoryStep(num) {
+  for (let i = 1; i <= 5; i++) {
+    const s = $("step" + i);
+    if (s) s.classList.toggle("active", i <= num);
+  }
+}
+
+// ---------- reseed demo button ----------
+async function doReseed() {
+  const btn = $("reseedBtn");
+  btn.disabled = true;
+  btn.textContent = "↺ Reseeding...";
+  try {
+    await api("/reseed", "POST");
+    S.selected = null;
+    S.blast = null;
+    S.answers = [];
+    $("blastEmpty").hidden = false;
+    $("blastBody").hidden = true;
+    $("q").value = "";
+    clear($("results"));
+    setStoryStep(0);
+    await pollState();
+    btn.textContent = "✓ Seeded";
+    setTimeout(() => { btn.textContent = "↺ Reset Demo"; btn.disabled = false; }, 1200);
+  } catch (e) {
+    btn.textContent = "Failed";
+    setTimeout(() => { btn.textContent = "↺ Reset Demo"; btn.disabled = false; }, 2000);
+  }
+}
+
+// ---------- wiring ----------
+$("searchBtn").addEventListener("click", doSearch);
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+$("blastBtn").addEventListener("click", doBlast);
+$("quarBtn").addEventListener("click", doQuarantine);
+$("notifyBtn").addEventListener("click", doNotify);
+$("askBtn").addEventListener("click", doAsk);
+$("viewTree").addEventListener("click", () => showView("tree"));
+$("viewList").addEventListener("click", () => showView("list"));
+$("themeToggle").addEventListener("click", toggleTheme);
+$("reseedBtn").addEventListener("click", doReseed);
+
+initTheme();
+fetchModelConfig();
+fetchKBArticles();
+pollState();
+setInterval(pollState, 1000);
+</script>
+</body>
+</html>

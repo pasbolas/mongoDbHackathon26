@@ -1,86 +1,106 @@
-# Anchor ⚓
-> **"A privacy-first adaptive assistance system for people living with dementia that learns when NOT to intervene."**  
-> Instead of constantly reminding someone what to do, Anchor learns how that individual performs familiar everyday activities, recognizes when their current behavior differs meaningfully from their personal pattern, and uses previous successful interventions to determine whether to **WAIT**, offer a subtle cue, escalate to a clearer cue, or **stop helping**.
+# Blast Radius
 
----
+When a team guide turns out to be wrong, Blast Radius shows which answers and which people it reached, switches it off, and sends them the fix.
 
-## 🌟 The Core Idea
+It sits in front of an AI assistant that answers from team guides and saved notes. Every answer logs which guide pages it was built from. When a page is bad, one walk through those links finds everything built on it. Then you quarantine it and notify the people.
 
-Most assistive systems assume that whenever an activity stalls, the AI should immediately tell the user what to do. For someone living with dementia, excessive prompting creates learned helplessness, frustration, and accelerates cognitive disengagement.
+We say "received", never "followed". We only see answers that pass through our assistant. We count "I used this" clicks separately.
 
-**Anchor asks a different question:**
-> *How little does AI need to do for you? When should the system do absolutely nothing?*
-
-1. **Silence is the Goal**: When an individual performs their routine independently, the assistant intentionally does nothing.
-2. **Task Uncertainty, Not Medical Diagnosis**: Anchor does not claim "you are confused". It measures: *"Sarah's current task behavior differs from her recent successful executions."*
-3. **Assistance is Bidirectional**: Dementia is progressive. If independence improves, cues vanish. If support needs increase, assistance safely recalibrates upwards.
-4. **Privacy-First Architecture**: Computer vision runs strictly on local edge devices. Raw video frames are discarded immediately. Only high-level semantic event records are stored in MongoDB Atlas.
-
----
-
-## 🍃 MongoDB Atlas Architecture
-
-MongoDB Atlas serves as Anchor's **longitudinal episodic memory**:
-
-1. **Atlas Vector Search (`$vectorSearch` over `episodes`)**:
-   - Represents situations as dense semantic vectors (completed items, remaining items, inactivity duration, bag reopenings).
-   - Retrieves semantically similar previous episodes using cosine similarity (e.g. *"Episode #17 (93% similarity): Inactivity after packing wallet, keys, phone — Subtle reminder successfully resolved activity"*).
-2. **Actionable Triggers vs. Time-Series TTL (Section 17)**:
-   - **`live_events`**: Standard Atlas collection with change streams to power real-time Atlas Database Triggers for intervention logic.
-   - **`sensor_history`**: Time-series collection with automatic data expiration (`expireAfterSeconds: 604800` — 7 days) ensuring privacy data retention limits.
-3. **Document Store (`task_profiles`, `session_metrics`)**:
-   - Stores Sarah's per-item assistance profile (`attempts`, `independent`, `promptHistory` for subtle vs. explicit cues).
-
----
-
-## 🎯 Demo MVP: Packing a Bag (Sarah)
-
-- **Objects**: Wallet, Keys, Phone, Notebook, Water Bottle.
-- **Normal Sequence**: `open_bag` → `pack_wallet` → `pack_keys` → `pack_phone` → `pack_notebook` → `pack_water` → `close_bag`.
-- **The 3 Demo Executions (Section 19)**:
-  - **Execution 1 (Session 1)**: Sarah packs wallet, keys, phone, and stops. Anchor waits, detects task uncertainty, and provides a subtle verbal question: *"Anything else you normally take with you?"* Sarah packs notebook. Stored as subtle cue successful.
-  - **Execution 2 (Session 2)**: Sarah pauses at the same point. Atlas Vector Search retrieves Episode #17. Anchor adapts by providing an even shorter nudge: *"Anything else?"* Sarah remembers independently.
-  - **Execution 3 (Session 3 — The Demo Moment)**: Sarah pauses briefly. Anchor observes and waits. Sarah remembers the notebook herself. **Anchor says NOTHING.** *"It worked. The AI did nothing."*
-
----
-
-## 📊 Observable Measurements (Section 20)
-
-Anchor does not invent arbitrary "independence percentages". It tracks observable ground truth:
-
-| Session | Independent Steps | Prompts Required | Avg Prompt Level |
-| :--- | :--- | :--- | :--- |
-| **Session 1** | 3 / 5 | 2 | 2.0 |
-| **Session 2** | 4 / 5 | 1 | 1.0 |
-| **Session 3** | 5 / 5 | 0 | 0.0 |
-
----
-
-## 🚀 Quick Start
+## 60 second setup
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build and start
-npm run build
-npm start
-
-# 3. Open browser
-http://localhost:5000
+cd blast-radius
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # then fill it in
 ```
 
-*(Optional) Configure MongoDB Atlas URI in `.env` or connect dynamically via the in-app Atlas tab:*
-```env
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/anchor_guardian?retryWrites=true&w=majority
-PORT=5000
+In `.env`:
+
 ```
-*(If no URI is specified, Anchor automatically runs using its high-fidelity local hybrid store with vector search and JSON persistence.)*
+MONGODB_URI=mongodb+srv://USER:PASS@CLUSTER.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB=blast
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...   # optional, for real Notify
+ANTHROPIC_API_KEY=...                                    # optional, template answers without it
+```
 
----
+In Atlas, go to Network Access and add the IP of the machine that runs the backend, plus your phone hotspot. Never add `0.0.0.0/0`. That is the exact mistake this demo is about.
 
-## 🔬 Research Foundation
+No Atlas yet? Add `--mock` to anything below. It uses an in memory database.
 
-- **Errorless Learning & Vanishing Cues**: Systematic review of 26 studies on error-reducing dementia rehabilitation (*PubMed Central*).
-- **Just-in-Time Adaptive Interventions (JITAI)**: National Institute on Aging (NIA) guidelines for delivering the right intensity of intervention at the right time.
-- **Prompt Granularity in Dementia Care**: *JMIR Aging* (2024) research demonstrating that optimal prompt type and granularity vary by individual and task.
+## Run it
+
+```bash
+python seed.py            # clears items, seeds the story, prints the summary line, writes seed_backup.json
+./run.sh                  # server on http://127.0.0.1:8000
+./run.sh --mock           # seeds in memory and serves, no Atlas needed
+pytest -q                 # tests (they always use the in memory database)
+```
+
+After `python seed.py` you should see:
+
+```
+Blast radius of entry_7_v2: 1 edit, 4 answers, 1 note, 4 people reached, 2 confirmed applied
+```
+
+`seed.py` has `--mock` and `--no-reset` too. It uses the real functions in `app/logic.py`, so answers and parents come from the retrieval log. Only the guide text is hand written. Order: v1, Ravi, v2, Aoife, Tom, Mei, note, Dev, v3.
+
+## The 3 minute demo
+
+| Time | On screen | Say |
+|---|---|---|
+| 0:00 to 0:20 | Title card | "Sam told our assistant to open every database to the internet. It worked first try. Nobody complained." |
+| 0:20 to 0:45 | Three beats: Sam's edit, Aoife's note, Priya's alert | Tell it fast. |
+| 0:45 to 1:05 | Priya searches `0.0.0.0/0`. v2 appears. Click Blast radius. | "She does not ask how to fix it. She asks who got it." |
+| 1:05 to 1:40 | Tree turns red. Line: 1 edit, 4 answers, 1 note, 4 people reached, 2 confirmed applied. Point at Dev's answer (one red parent, one green). Point at Ravi's green answer. | Pause. "We say received, not followed." |
+| 1:40 to 2:10 | Click Quarantine, red goes grey. Click Notify, Slack message lands on the phone. | "Fixing the guide fixed nothing for these four. Now they have the fix." |
+| 2:10 to 2:30 | Ask again: "How do I connect to the dev database cluster?" Retrieved now: v3. Excluded: v2 and the note. | "Quarantine cut it off. This comes from the status filter, not the model's mood." |
+| 2:30 to 2:52 | Show the walk down query | One collection, one aggregation stage. No second database to sync. |
+| 2:52 to 3:00 | Grey tree | "We turn logs into an action." |
+
+Do not let a judge ask a live question before quarantine. It would pull in the bad note and the line becomes 5 answers and 5 people. After quarantine it is safe.
+
+Questions to know:
+- Asked or followed? Received. It is an upper bound. "I used this" clicks are shown apart.
+- Who guarantees the log is complete? Only answers through our gateway. Paste into Slack is invisible.
+- One good parent, one bad? The answer is quarantined. The good page stays active.
+- Say it honestly: you could build this in Postgres. Here it is one collection, and agent memory already lives in MongoDB.
+
+## Day-of checklist
+
+The night before:
+- [ ] Run `python seed.py` on the real Atlas cluster, check the summary line
+- [ ] Click Blast radius once against Atlas
+- [ ] Send one real Slack test message with Notify, then re-seed
+- [ ] Test the non-SRV connection string from Atlas as a backup
+
+At the venue:
+- [ ] Add the backend machine's public IP and the phone hotspot to the Atlas access list. Recheck after every network change.
+- [ ] Test the connection from venue wifi early. Port 27017 is often blocked. Keep the hotspot ready.
+- [ ] Start with `./run.sh` (one process, no `--workers`)
+- [ ] Make one warm-up request (open the page, run one search) before the demo
+- [ ] Feature freeze at 15:15 if the deadline is 16:00
+- [ ] Run the whole script on the demo laptop three times out loud
+- [ ] Record the backup video by 15:30
+
+## Fallbacks
+
+| Problem | Do this |
+|---|---|
+| Venue network down | Use the phone hotspot |
+| Still no Atlas | `./run.sh --mock`. Same story, in memory. |
+| Data got messy | `python seed.py` again, it resets first |
+| LLM slow or down | After 5 seconds the answer falls back to a template that quotes the top guide. Say "cached" out loud. |
+| Slack silent | The page still shows the message as "preview only". Play the 10 second phone clip. |
+| Page will not draw the tree | It falls back to the indented list view on its own |
+
+`seed_backup.json` has every seeded doc. If the cluster is gone, `./run.sh --mock` rebuilds the same data in memory.
+
+## Free tier limits that matter
+
+- Atlas free (M0): about 100 operations per second. The page polls `/state` once a second, which is one `find`. The walks run only on button clicks.
+- M0 has a 500 connection cap. We create one `MongoClient` and run one uvicorn process.
+- 512 MB storage. We use about 15 documents.
+- Slack incoming webhooks have a rate limit of about 1 message per second. One Notify click is fine.
+- The LLM call has a 5 second timeout and temperature 0 so answers repeat.
