@@ -224,17 +224,33 @@ export async function seedDatabase(force = false) {
     }
   ]);
 
-  // 5. Sensor History (Time-Series with simulated TTL expireAfterSeconds)
+  // 5. Sensor History (Time-Series with TTL expireAfterSeconds)
+  if (dbManager.isAtlas && dbManager.db) {
+    try {
+      const collections = await dbManager.db.listCollections({ name: 'sensor_history' }).toArray();
+      if (collections.length === 0) {
+        await dbManager.db.createCollection('sensor_history', {
+          timeseries: {
+            timeField: 'timestamp',
+            metaField: 'metadata',
+            granularity: 'seconds'
+          },
+          expireAfterSeconds: 604800 // 7 days automatic privacy TTL retention!
+        });
+        console.log('✅ Created native MongoDB Atlas time-series collection: sensor_history (7-day TTL).');
+      }
+    } catch (e) {
+      console.warn('Note on Atlas time-series creation:', e.message);
+    }
+  }
+
   const sensorCol = dbManager.getCollection('sensor_history');
   await sensorCol.deleteMany({});
-  await sensorCol.insertMany([
-    {
-      timestamp: new Date(Date.now() - 120000),
-      metadata: { user: 'sarah', task: 'pack_bag' },
-      event: 'bag_open',
-      expireAfterSeconds: 604800 // 7 days retention policy
-    }
-  ]);
+  await sensorCol.insertOne({
+    timestamp: new Date(),
+    metadata: { user: 'sarah', task: 'pack_bag' },
+    event: 'bag_open'
+  });
 
   console.log('✅ Anchor seed data initialized successfully!');
 }

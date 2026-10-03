@@ -87,6 +87,28 @@ export default function DatabaseView({ dbStatus, onRefreshDbStatus }) {
           <li><strong className="text-[#1d1d1f]">sensor_history</strong>: Time-series collection with automatic data expiration (<code className="bg-[#eaeaea] text-[#1d1d1f] px-1 py-0.5 rounded">expireAfterSeconds</code>) for privacy retention compliance.</li>
           <li><strong className="text-[#1d1d1f]">episodes</strong>: Stores longitudinal episodes with embeddings for semantic retrieval via <code className="bg-[#eaeaea] text-[#1d1d1f] px-1 py-0.5 rounded">$vectorSearch</code>.</li>
         </ul>
+
+        {/* Vector Search Index JSON snippet */}
+        <div className="mt-4 pt-3 border-t border-[#e5e5ea] space-y-2">
+          <div className="text-xs font-bold text-[#1d1d1f]">
+            Atlas Vector Search Index Definition (`episode_vector_index`):
+          </div>
+          <p className="text-[11px] text-[#6e6e73]">
+            In Atlas: Go to <strong>Atlas Search</strong> → <strong>Create Search Index</strong> → <strong>Atlas Vector Search (JSON Editor)</strong> → Target <code className="text-[#1d1d1f]">anchor_guardian.episodes</code>:
+          </p>
+          <pre className="bg-[#f5f5f7] p-3 rounded-xl border border-[#e5e5ea] text-[11px] font-mono text-[#1d1d1f] overflow-x-auto">
+{`{
+  "fields": [
+    {
+      "type": "vector",
+      "path": "embedding",
+      "numDimensions": 32,
+      "similarity": "cosine"
+    }
+  ]
+}`}
+          </pre>
+        </div>
       </div>
 
       {/* Atlas Connection Card */}
