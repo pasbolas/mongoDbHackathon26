@@ -164,7 +164,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-[#f5f5f7] flex flex-col md:flex-row font-sans antialiased selection:bg-[#333336]">
+    <div className="min-h-screen bg-[#fbfbfd] text-[#1d1d1f] flex flex-col md:flex-row font-mono antialiased selection:bg-neutral-200">
       
       {/* Vertical Left Taskbar */}
       <Sidebar
@@ -176,8 +176,8 @@ export default function App() {
         onReset={handleReset}
       />
 
-      {/* Main Content Area (Apple Proportions: Generous Padding, Less Columns) */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#000000]">
+      {/* Main Content Area (Light Theme & Apple Proportions) */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#fbfbfd]">
         <main className="flex-1 px-6 sm:px-12 py-10 sm:py-14 max-w-4xl w-full mx-auto">
           
           {activeTab === 'live' && (
@@ -212,8 +212,8 @@ export default function App() {
 
         </main>
 
-        {/* Minimal Footer */}
-        <footer className="border-t border-[#1c1c1f] py-6 px-6 sm:px-12 text-xs text-[#86868b] max-w-4xl w-full mx-auto flex items-center justify-between">
+        {/* Minimal Light Footer */}
+        <footer className="border-t border-[#e5e5ea] py-6 px-6 sm:px-12 text-xs text-[#86868b] max-w-4xl w-full mx-auto flex items-center justify-between">
           <span>Adaptive Memory Guardian</span>
           <span>Powered by MongoDB Atlas Vector Search</span>
         </footer>
