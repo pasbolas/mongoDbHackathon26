@@ -1,0 +1,443 @@
+[
+  {
+    "_id": "entry_1_v1",
+    "kind": "entry",
+    "entryId": "entry_1",
+    "version": 1,
+    "title": "Workspace access",
+    "text": "Ask the team lead for an invite to the shared project. Accept it within two days or it expires.",
+    "parents": [],
+    "user": "Sam",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:48.078000",
+    "expireAt": null,
+    "id": "entry_1_v1"
+  },
+  {
+    "_id": "entry_3_v1",
+    "kind": "entry",
+    "entryId": "entry_3",
+    "version": 1,
+    "title": "Networking basics",
+    "text": "A firewall rule decides which traffic can reach a service. Allow only the addresses you need and review the rules every week.",
+    "parents": [],
+    "user": "Sam",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:48.151000",
+    "expireAt": null,
+    "id": "entry_3_v1"
+  },
+  {
+    "_id": "entry_5_v1",
+    "kind": "entry",
+    "entryId": "entry_5",
+    "version": 1,
+    "title": "Deploying the demo app",
+    "text": "Build the container, push it to the team registry, then run the deploy script. Check the health page after two minutes.",
+    "parents": [],
+    "user": "Sam",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:48.221000",
+    "expireAt": null,
+    "id": "entry_5_v1"
+  },
+  {
+    "_id": "entry_7_v1",
+    "kind": "entry",
+    "entryId": "entry_7",
+    "version": 1,
+    "title": "Database setup",
+    "text": "Database setup for dev clusters. Create a cluster in the shared project. Set the IP access list to the venue wifi address 203.0.113.25 only. Keep the connection string in the team vault.",
+    "parents": [],
+    "user": "Sam",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:48.303000",
+    "expireAt": null,
+    "id": "entry_7_v1"
+  },
+  {
+    "_id": "ans_ravi_1",
+    "kind": "answer",
+    "text": "Based on Database setup: Database setup for dev clusters. Create a cluster in the shared project.",
+    "parents": [
+      "entry_7_v1"
+    ],
+    "user": "Ravi",
+    "applied": [],
+    "status": "active",
+    "question": "How do I set up the database for a dev cluster?",
+    "agentTrace": {
+      "agent": "Blast Guardian Agent",
+      "model": "autonomous-knowledge-engine",
+      "total_time_ms": 109,
+      "steps": [
+        {
+          "step": "query_knowledge_base",
+          "collection": "blast.knowledge_base",
+          "mql": "db.knowledge_base.find({'$or': [{'title': {'$regex': 'set', '$options': 'i'}}, {'title': {'$regex': 'dev', '$options': 'i'}}, {'title': {'$regex': 'database', '$options': 'i'}}, {'title': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'dev', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}]})",
+          "docs_matched": 1,
+          "latency_ms": 30
+        },
+        {
+          "step": "query_notes_logs",
+          "collection": "blast.logs",
+          "mql": "db.logs.find({'kind': 'note', '$or': [{'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'dev', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}]})",
+          "docs_matched": 0,
+          "latency_ms": 18
+        },
+        {
+          "step": "provenance_guardrails",
+          "quarantined_blocked": [],
+          "superseded_blocked": [],
+          "safe_sources_passed": [
+            "entry_7_v1"
+          ]
+        },
+        {
+          "step": "llm_synthesis",
+          "model": "autonomous-knowledge-engine",
+          "latency_ms": 1
+        }
+      ],
+      "retrieved": [
+        {
+          "id": "entry_7_v1",
+          "title": "Database setup",
+          "kind": "entry"
+        }
+      ],
+      "excluded": []
+    },
+    "createdAt": "2026-10-03T14:32:48.538000",
+    "expireAt": null,
+    "id": "ans_ravi_1"
+  },
+  {
+    "_id": "entry_7_v2",
+    "kind": "entry",
+    "entryId": "entry_7",
+    "version": 2,
+    "title": "Database setup",
+    "text": "Database setup for dev clusters. Create a cluster in the shared project. For dev clusters, set the IP access list to 0.0.0.0/0 (temporary). This lets the whole team connect first try. Keep the connection string in the team vault.",
+    "parents": [],
+    "user": "Sam",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:48.652000",
+    "expireAt": null,
+    "id": "entry_7_v2"
+  },
+  {
+    "_id": "ans_aoife_2",
+    "kind": "answer",
+    "text": "Based on Database setup: Database setup for dev clusters. Create a cluster in the shared project.",
+    "parents": [
+      "entry_7_v2"
+    ],
+    "user": "Aoife",
+    "applied": [
+      "Aoife"
+    ],
+    "status": "active",
+    "question": "How do I set up a dev cluster database?",
+    "agentTrace": {
+      "agent": "Blast Guardian Agent",
+      "model": "autonomous-knowledge-engine",
+      "total_time_ms": 92,
+      "steps": [
+        {
+          "step": "query_knowledge_base",
+          "collection": "blast.knowledge_base",
+          "mql": "db.knowledge_base.find({'$or': [{'title': {'$regex': 'set', '$options': 'i'}}, {'title': {'$regex': 'database', '$options': 'i'}}, {'title': {'$regex': 'dev', '$options': 'i'}}, {'title': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'dev', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}]})",
+          "docs_matched": 2,
+          "latency_ms": 21
+        },
+        {
+          "step": "query_notes_logs",
+          "collection": "blast.logs",
+          "mql": "db.logs.find({'kind': 'note', '$or': [{'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'dev', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}]})",
+          "docs_matched": 0,
+          "latency_ms": 26
+        },
+        {
+          "step": "provenance_guardrails",
+          "quarantined_blocked": [],
+          "superseded_blocked": [
+            "entry_7_v1"
+          ],
+          "safe_sources_passed": [
+            "entry_7_v2"
+          ]
+        },
+        {
+          "step": "llm_synthesis",
+          "model": "autonomous-knowledge-engine",
+          "latency_ms": 1
+        }
+      ],
+      "retrieved": [
+        {
+          "id": "entry_7_v2",
+          "title": "Database setup",
+          "kind": "entry"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "entry_7_v1",
+          "reason": "superseded"
+        }
+      ]
+    },
+    "createdAt": "2026-10-03T14:32:48.877000",
+    "expireAt": null,
+    "id": "ans_aoife_2"
+  },
+  {
+    "_id": "ans_tom_3",
+    "kind": "answer",
+    "text": "Based on Database setup: Database setup for dev clusters. Create a cluster in the shared project.",
+    "parents": [
+      "entry_7_v2"
+    ],
+    "user": "Tom",
+    "applied": [
+      "Tom"
+    ],
+    "status": "active",
+    "question": "What is the way to set up a database on a dev cluster?",
+    "agentTrace": {
+      "agent": "Blast Guardian Agent",
+      "model": "autonomous-knowledge-engine",
+      "total_time_ms": 144,
+      "steps": [
+        {
+          "step": "query_knowledge_base",
+          "collection": "blast.knowledge_base",
+          "mql": "db.knowledge_base.find({'$or': [{'title': {'$regex': 'way', '$options': 'i'}}, {'title': {'$regex': 'set', '$options': 'i'}}, {'title': {'$regex': 'cluster', '$options': 'i'}}, {'title': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'way', '$options': 'i'}}, {'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}]})",
+          "docs_matched": 2,
+          "latency_ms": 27
+        },
+        {
+          "step": "query_notes_logs",
+          "collection": "blast.logs",
+          "mql": "db.logs.find({'kind': 'note', '$or': [{'text': {'$regex': 'way', '$options': 'i'}}, {'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}]})",
+          "docs_matched": 0,
+          "latency_ms": 35
+        },
+        {
+          "step": "provenance_guardrails",
+          "quarantined_blocked": [],
+          "superseded_blocked": [
+            "entry_7_v1"
+          ],
+          "safe_sources_passed": [
+            "entry_7_v2"
+          ]
+        },
+        {
+          "step": "llm_synthesis",
+          "model": "autonomous-knowledge-engine",
+          "latency_ms": 1
+        }
+      ],
+      "retrieved": [
+        {
+          "id": "entry_7_v2",
+          "title": "Database setup",
+          "kind": "entry"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "entry_7_v1",
+          "reason": "superseded"
+        }
+      ]
+    },
+    "createdAt": "2026-10-03T14:32:49.171000",
+    "expireAt": null,
+    "id": "ans_tom_3"
+  },
+  {
+    "_id": "ans_mei_4",
+    "kind": "answer",
+    "text": "Based on Database setup: Database setup for dev clusters. Create a cluster in the shared project.",
+    "parents": [
+      "entry_7_v2"
+    ],
+    "user": "Mei",
+    "applied": [],
+    "status": "active",
+    "question": "Steps to set up the dev cluster database please",
+    "agentTrace": {
+      "agent": "Blast Guardian Agent",
+      "model": "autonomous-knowledge-engine",
+      "total_time_ms": 101,
+      "steps": [
+        {
+          "step": "query_knowledge_base",
+          "collection": "blast.knowledge_base",
+          "mql": "db.knowledge_base.find({'$or': [{'title': {'$regex': 'set', '$options': 'i'}}, {'title': {'$regex': 'please', '$options': 'i'}}, {'title': {'$regex': 'cluster', '$options': 'i'}}, {'title': {'$regex': 'database', '$options': 'i'}}, {'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'please', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}]})",
+          "docs_matched": 2,
+          "latency_ms": 20
+        },
+        {
+          "step": "query_notes_logs",
+          "collection": "blast.logs",
+          "mql": "db.logs.find({'kind': 'note', '$or': [{'text': {'$regex': 'set', '$options': 'i'}}, {'text': {'$regex': 'please', '$options': 'i'}}, {'text': {'$regex': 'cluster', '$options': 'i'}}, {'text': {'$regex': 'database', '$options': 'i'}}]})",
+          "docs_matched": 0,
+          "latency_ms": 14
+        },
+        {
+          "step": "provenance_guardrails",
+          "quarantined_blocked": [],
+          "superseded_blocked": [
+            "entry_7_v1"
+          ],
+          "safe_sources_passed": [
+            "entry_7_v2"
+          ]
+        },
+        {
+          "step": "llm_synthesis",
+          "model": "autonomous-knowledge-engine",
+          "latency_ms": 1
+        }
+      ],
+      "retrieved": [
+        {
+          "id": "entry_7_v2",
+          "title": "Database setup",
+          "kind": "entry"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "entry_7_v1",
+          "reason": "superseded"
+        }
+      ]
+    },
+    "createdAt": "2026-10-03T14:32:49.514000",
+    "expireAt": null,
+    "id": "ans_mei_4"
+  },
+  {
+    "_id": "note_aoife_1",
+    "kind": "note",
+    "text": "Dev database setup that worked for me: set the IP access list to 0.0.0.0/0 (temporary). The team can connect from any wifi first try. Firewall rules apply to our project traffic, and the service can reach the cluster.",
+    "parents": [
+      "ans_aoife_2",
+      "entry_7_v2"
+    ],
+    "user": "Aoife",
+    "applied": [],
+    "status": "active",
+    "createdAt": "2026-10-03T14:32:49.686000",
+    "expireAt": null,
+    "id": "note_aoife_1"
+  },
+  {
+    "_id": "ans_dev_5",
+    "kind": "answer",
+    "text": "Based on the guide: The team can connect from any wifi first try. Firewall rules apply to our project traffic, and the service can reach the cluster.",
+    "parents": [
+      "note_aoife_1",
+      "entry_3_v1"
+    ],
+    "user": "Dev",
+    "applied": [],
+    "status": "active",
+    "question": "Which firewall rules apply to our project, can the team connect from any wifi, and which traffic can reach the service?",
+    "agentTrace": {
+      "agent": "Blast Guardian Agent",
+      "model": "autonomous-knowledge-engine",
+      "total_time_ms": 80,
+      "steps": [
+        {
+          "step": "query_knowledge_base",
+          "collection": "blast.knowledge_base",
+          "mql": "db.knowledge_base.find({'$or': [{'title': {'$regex': 'firewall', '$options': 'i'}}, {'title': {'$regex': 'service', '$options': 'i'}}, {'title': {'$regex': 'traffic', '$options': 'i'}}, {'title': {'$regex': 'connect', '$options': 'i'}}, {'text': {'$regex': 'firewall', '$options': 'i'}}, {'text': {'$regex': 'service', '$options': 'i'}}, {'text': {'$regex': 'traffic', '$options': 'i'}}, {'text': {'$regex': 'connect', '$options': 'i'}}]})",
+          "docs_matched": 3,
+          "latency_ms": 21
+        },
+        {
+          "step": "query_notes_logs",
+          "collection": "blast.logs",
+          "mql": "db.logs.find({'kind': 'note', '$or': [{'text': {'$regex': 'firewall', '$options': 'i'}}, {'text': {'$regex': 'service', '$options': 'i'}}, {'text': {'$regex': 'traffic', '$options': 'i'}}, {'text': {'$regex': 'connect', '$options': 'i'}}]})",
+          "docs_matched": 1,
+          "latency_ms": 19
+        },
+        {
+          "step": "provenance_guardrails",
+          "quarantined_blocked": [],
+          "superseded_blocked": [
+            "entry_7_v1"
+          ],
+          "safe_sources_passed": [
+            "note_aoife_1",
+            "entry_3_v1"
+          ]
+        },
+        {
+          "step": "llm_synthesis",
+          "model": "autonomous-knowledge-engine",
+          "latency_ms": 1
+        }
+      ],
+      "retrieved": [
+        {
+          "id": "note_aoife_1",
+          "title": null,
+          "kind": "note"
+        },
+        {
+          "id": "entry_3_v1",
+          "title": "Networking basics",
+          "kind": "entry"
+        }
+      ],
+      "excluded": [
+        {
+          "id": "entry_7_v1",
+          "reason": "superseded"
+        }
+      ]
+    },
+    "createdAt": "2026-10-03T14:32:49.895000",
+    "expireAt": null,
+    "id": "ans_dev_5"
+  },
+  {
+    "_id": "entry_7_v3",
+    "kind": "entry",
+    "entryId": "entry_7",
+    "version": 3,
+    "title": "Database setup",
+    "text": "Database setup for dev clusters. Create a cluster in the shared project. Add only the venue wifi address 203.0.113.25 to the IP access list. Never open the list to the whole internet. If a teammate cannot connect, add their own address. Keep the connection string in the team vault.",
+    "parents": [],
+    "user": "Priya",
+    "applied": [],
+    "status": "active",
+    "category": "General",
+    "tags": [],
+    "createdAt": "2026-10-03T14:32:50.018000",
+    "expireAt": null,
+    "id": "entry_7_v3"
+  }
+]
